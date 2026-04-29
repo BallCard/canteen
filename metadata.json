@@ -1,0 +1,6 @@
+{
+  "name": "浙大食堂助手",
+  "description": "专注浙大师生的校园食堂导吃、营养追踪与AI智能菜品推荐助手。",
+  "requestFramePermissions": ["camera", "geolocation"],
+  "majorCapabilities": []
+}
