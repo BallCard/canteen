@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>浙大食堂助手 — ZJU Canteen</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div id="app">
+  <header id="app-header">
+    <button id="back-btn" class="back-btn hidden" onclick="window.app.back()">←</button>
+    <h1 id="app-title">浙大食堂</h1>
+    <div id="header-right"></div>
+  </header>
+  <main id="page-content">
+    <div class="loading-screen">加载中...</div>
+  </main>
+  <nav id="tabbar">
+    <a class="tab-item active" data-route="/" onclick="window.app.navigate('/')">
+      <span class="tab-icon">🏠</span><span class="tab-label">首页</span>
+    </a>
+    <a class="tab-item" data-route="/recommend" onclick="window.app.navigate('/recommend')">
+      <span class="tab-icon">🤖</span><span class="tab-label">推荐</span>
+    </a>
+    <a class="tab-item" data-route="/nutrition" onclick="window.app.navigate('/nutrition')">
+      <span class="tab-icon">📊</span><span class="tab-label">追踪</span>
+    </a>
+    <a class="tab-item" data-route="/profile" onclick="window.app.navigate('/profile')">
+      <span class="tab-icon">👤</span><span class="tab-label">我的</span>
+    </a>
+  </nav>
+  <div id="toast-container"></div>
+</div>
+<script src="js/api.js"></script>
+<script src="js/components/toast.js"></script>
+<script src="js/components/tabbar.js"></script>
+<script src="js/components/dishcard.js"></script>
+<script src="js/pages/home.js"></script>
+<script src="js/pages/menu.js"></script>
+<script src="js/pages/dish.js"></script>
+<script src="js/pages/recommend.js"></script>
+<script src="js/pages/nutrition.js"></script>
+<script src="js/pages/profile.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
