@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>浙大食堂助手 - 演示动画</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#51CF66',
+                        'primary-dark': '#40C057',
+                        'primary-light': '#69DB7C',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Base animations */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes fadeOut {
+            from { opacity: 1; }
+            to { opacity: 0; }
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(40px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes slideLeft {
+            from { opacity: 0; transform: translateX(60px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        @keyframes slideRight {
+            from { opacity: 0; transform: translateX(-60px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        @keyframes scaleIn {
+            from { opacity: 0; transform: scale(0.8); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        @keyframes typing {
+            from { width: 0; }
+            to { width: 100%; }
+        }
+
+        @keyframes blink {
+            0%, 50% { border-color: #51CF66; }
+            51%, 100% { border-color: transparent; }
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        /* Animation classes */
+        .fade-in { animation: fadeIn 0.8s ease-out forwards; }
+        .fade-in-delay-1 { animation: fadeIn 0.8s ease-out 0.3s forwards; opacity: 0; }
+        .fade-in-delay-2 { animation: fadeIn 0.8s ease-out 0.6s forwards; opacity: 0; }
+        .fade-in-delay-3 { animation: fadeIn 0.8s ease-out 0.9s forwards; opacity: 0; }
+        .fade-in-delay-4 { animation: fadeIn 0.8s ease-out 1.2s forwards; opacity: 0; }
+        .fade-in-delay-5 { animation: fadeIn 0.8s ease-out 1.5s forwards; opacity: 0; }
+
+        .slide-up { animation: slideUp 0.8s ease-out forwards; }
+        .slide-up-delay-1 { animation: slideUp 0.8s ease-out 0.4s forwards; opacity: 0; }
+        .slide-up-delay-2 { animation: slideUp 0.8s ease-out 0.8s forwards; opacity: 0; }
+        .slide-up-delay-3 { animation: slideUp 0.8s ease-out 1.2s forwards; opacity: 0; }
+        .slide-up-delay-4 { animation: slideUp 0.8s ease-out 1.6s forwards; opacity: 0; }
+        .slide-up-delay-5 { animation: slideUp 0.8s ease-out 2.0s forwards; opacity: 0; }
+
+        .slide-left { animation: slideLeft 0.8s ease-out forwards; }
+        .slide-left-delay-1 { animation: slideLeft 0.8s ease-out 0.3s forwards; opacity: 0; }
+        .slide-left-delay-2 { animation: slideLeft 0.8s ease-out 0.6s forwards; opacity: 0; }
+
+        .slide-right { animation: slideRight 0.8s ease-out forwards; }
+        .slide-right-delay-1 { animation: slideRight 0.8s ease-out 0.3s forwards; opacity: 0; }
+
+        .scale-in { animation: scaleIn 0.6s ease-out forwards; }
+        .scale-in-delay-1 { animation: scaleIn 0.6s ease-out 0.2s forwards; opacity: 0; }
+        .scale-in-delay-2 { animation: scaleIn 0.6s ease-out 0.4s forwards; opacity: 0; }
+        .scale-in-delay-3 { animation: scaleIn 0.6s ease-out 0.6s forwards; opacity: 0; }
+
+        .pulse { animation: pulse 2s ease-in-out infinite; }
+        .float { animation: float 3s ease-in-out infinite; }
+
+        /* Scene container */
+        .scene {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.5s ease;
+        }
+
+        .scene.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        /* Progress indicator */
+        .progress-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .progress-dot.active {
+            background: #51CF66;
+            transform: scale(1.3);
+        }
+
+        /* Chat bubble styles */
+        .chat-bubble {
+            max-width: 80%;
+            padding: 1rem 1.5rem;
+            border-radius: 1rem;
+            position: relative;
+        }
+
+        .chat-bubble.user {
+            background: #51CF66;
+            color: white;
+            border-bottom-right-radius: 0.25rem;
+            margin-left: auto;
+        }
+
+        .chat-bubble.ai {
+            background: white;
+            color: #333;
+            border-bottom-left-radius: 0.25rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Memory card */
+        .memory-card {
+            background: linear-gradient(135deg, #51CF66 0%, #40C057 100%);
+            border-radius: 1rem;
+            padding: 1rem 1.5rem;
+            color: white;
+        }
+
+        /* Nutrition progress */
+        .nutrition-bar {
+            height: 8px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .nutrition-fill {
+            height: 100%;
+            background: #51CF66;
+            border-radius: 4px;
+        }
+
+        /* Hint text */
+        .hint {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.875rem;
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-white min-h-screen overflow-hidden">
+    <!-- Scene 1: Intro -->
+    <div id="scene1" class="scene">
+        <div class="text-center max-w-4xl">
+            <!-- Logo -->
+            <div class="mb-8 fade-in">
+                <div class="w-24 h-24 mx-auto bg-primary rounded-3xl flex items-center justify-center text-5xl shadow-lg shadow-primary/30">
+                    🍽️
+                </div>
+            </div>
+
+            <!-- Title -->
+            <h1 class="text-5xl md:text-7xl font-bold mb-8 fade-in-delay-1">
+                浙大食堂助手
+            </h1>
+
+            <!-- Questions sequence -->
+            <div class="space-y-4 mb-12 text-xl md:text-2xl text-gray-300">
+                <p class="slide-up-delay-1">今天吃什么？</p>
+                <p class="slide-up-delay-2">选择太多？</p>
+                <p class="slide-up-delay-3">营养怎么平衡？</p>
+            </div>
+
+            <!-- Positioning -->
+            <div class="slide-up-delay-4 text-2xl md:text-3xl font-medium text-primary">
+                AI 驱动的智能点餐助手
+            </div>
+            <p class="slide-up-delay-5 text-gray-400 mt-4 text-lg">
+                让每一餐都有答案
+            </p>
+        </div>
+    </div>
+
+    <!-- Scene 2: AI Chat Innovation -->
+    <div id="scene2" class="scene">
+        <div class="max-w-4xl w-full">
+            <!-- Header -->
+            <div class="text-center mb-10">
+                <div class="inline-flex items-center gap-4 mb-4 slide-up">
+                    <span class="text-5xl">💬</span>
+                    <h2 class="text-4xl md:text-5xl font-bold">AI 对话式推荐</h2>
+                </div>
+                <p class="text-xl text-gray-400 slide-up-delay-1">像朋友聊天一样，说出你的需求</p>
+            </div>
+
+            <!-- Chat Demo -->
+            <div class="space-y-4 max-w-2xl mx-auto">
+                <!-- User message 1 -->
+                <div class="slide-left-delay-1">
+                    <div class="chat-bubble user">
+                        <p>今天想吃点清淡的，最好有蔬菜</p>
+                    </div>
+                </div>
+
+                <!-- AI response 1 -->
+                <div class="slide-right-delay-1">
+                    <div class="chat-bubble ai">
+                        <p class="mb-2">好的！我为你推荐几道清淡菜品：</p>
+                        <p class="text-primary font-medium">• 清炒时蔬 - 低油少盐</p>
+                        <p class="text-primary font-medium">• 白灼西兰花 - 高纤维</p>
+                        <p class="mt-2 text-gray-500 text-sm">你今天运动量如何？我可以帮你调整蛋白质配比~</p>
+                    </div>
+                </div>
+
+                <!-- User message 2 -->
+                <div class="slide-up-delay-3">
+                    <div class="chat-bubble user">
+                        <p>今天没运动，想减脂</p>
+                    </div>
+                </div>
+
+                <!-- AI response 2 -->
+                <div class="slide-up-delay-4">
+                    <div class="chat-bubble ai">
+                        <p class="mb-2">了解！减脂模式推荐：</p>
+                        <p class="text-primary font-medium">✨ 清蒸鲈鱼 + 烫青菜</p>
+                        <p class="text-gray-500 mt-2">预估热量 320 kcal，蛋白质 28g</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Feature highlight -->
+            <div class="mt-8 text-center slide-up-delay-5">
+                <div class="inline-flex items-center gap-2 bg-primary/20 px-6 py-3 rounded-full">
+                    <span class="text-primary">✓</span>
+                    <span>主动追问引导</span>
+                    <span class="text-primary mx-2">✓</span>
+                    <span>精准个性化推荐</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scene 3: Preference Memory -->
+    <div id="scene3" class="scene">
+        <div class="max-w-4xl w-full">
+            <!-- Header -->
+            <div class="text-center mb-10">
+                <div class="inline-flex items-center gap-4 mb-4 slide-up">
+                    <span class="text-5xl">🧠</span>
+                    <h2 class="text-4xl md:text-5xl font-bold">偏好记忆系统</h2>
+                </div>
+                <p class="text-xl text-gray-400 slide-up-delay-1">记住你的口味，越用越懂你</p>
+            </div>
+
+            <!-- Memory Toggle -->
+            <div class="flex justify-center mb-8 slide-up-delay-2">
+                <div class="bg-gray-800 rounded-2xl p-6 w-full max-w-md">
+                    <div class="flex items-center justify-between mb-4">
+                        <span class="text-lg">偏好记忆</span>
+                        <div class="w-14 h-8 bg-primary rounded-full relative cursor-pointer">
+                            <div class="absolute right-1 top-1 w-6 h-6 bg-white rounded-full shadow"></div>
+                        </div>
+                    </div>
+                    <p class="text-gray-400 text-sm">开启后，AI 会记住你的饮食偏好</p>
+                </div>
+            </div>
+
+            <!-- Memory Cards -->
+            <div class="grid md:grid-cols-3 gap-4 max-w-3xl mx-auto">
+                <div class="memory-card slide-up-delay-3">
+                    <div class="text-2xl mb-2">🌶️</div>
+                    <p class="font-medium">口味偏好</p>
+                    <p class="text-sm opacity-80">微辣、少油</p>
+                </div>
+                <div class="memory-card slide-up-delay-4">
+                    <div class="text-2xl mb-2">🥗</div>
+                    <p class="font-medium">健康目标</p>
+                    <p class="text-sm opacity-80">减脂中</p>
+                </div>
+                <div class="memory-card slide-up-delay-5">
+                    <div class="text-2xl mb-2">🚫</div>
+                    <p class="font-medium">忌口记录</p>
+                    <p class="text-sm opacity-80">不吃香菜</p>
+                </div>
+            </div>
+
+            <!-- Cross-session hint -->
+            <div class="mt-8 text-center">
+                <p class="text-gray-400 slide-up-delay-5">
+                    <span class="text-primary">✓</span>
+                    跨会话记忆 · 下次打开自动应用
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scene 4: Nutrition Goals -->
+    <div id="scene4" class="scene">
+        <div class="max-w-4xl w-full">
+            <!-- Header -->
+            <div class="text-center mb-10">
+                <div class="inline-flex items-center gap-4 mb-4 slide-up">
+                    <span class="text-5xl">📊</span>
+                    <h2 class="text-4xl md:text-5xl font-bold">营养目标驱动</h2>
+                </div>
+                <p class="text-xl text-gray-400 slide-up-delay-1">设定目标，智能推荐匹配菜品</p>
+            </div>
+
+            <!-- Goal Options -->
+            <div class="flex flex-wrap justify-center gap-4 mb-10 slide-up-delay-2">
+                <div class="bg-gray-800 border-2 border-gray-700 rounded-2xl p-6 w-40 text-center transition-all hover:border-primary">
+                    <div class="text-3xl mb-2">🔥</div>
+                    <p class="font-medium">减脂</p>
+                    <p class="text-xs text-gray-400">低卡高蛋白</p>
+                </div>
+                <div class="bg-gray-800 border-2 border-primary rounded-2xl p-6 w-40 text-center scale-105 shadow-lg shadow-primary/20">
+                    <div class="text-3xl mb-2">💪</div>
+                    <p class="font-medium text-primary">增肌</p>
+                    <p class="text-xs text-gray-400">高蛋白高碳</p>
+                </div>
+                <div class="bg-gray-800 border-2 border-gray-700 rounded-2xl p-6 w-40 text-center transition-all hover:border-primary">
+                    <div class="text-3xl mb-2">⚖️</div>
+                    <p class="font-medium">均衡</p>
+                    <p class="text-xs text-gray-400">营养全面</p>
+                </div>
+            </div>
+
+            <!-- Nutrition Tracking -->
+            <div class="bg-gray-800 rounded-2xl p-6 max-w-lg mx-auto slide-up-delay-3">
+                <h3 class="text-lg font-medium mb-4">今日营养追踪</h3>
+
+                <div class="space-y-4">
+                    <div>
+                        <div class="flex justify-between text-sm mb-1">
+                            <span>热量</span>
+                            <span class="text-primary">1450 / 1800 kcal</span>
+                        </div>
+                        <div class="nutrition-bar">
+                            <div class="nutrition-fill" style="width: 80%; animation: slideLeft 1s ease-out forwards;"></div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="flex justify-between text-sm mb-1">
+                            <span>蛋白质</span>
+                            <span class="text-primary">85 / 120 g</span>
+                        </div>
+                        <div class="nutrition-bar">
+                            <div class="nutrition-fill" style="width: 70%; animation: slideLeft 1s ease-out 0.2s forwards; opacity: 0;"></div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="flex justify-between text-sm mb-1">
+                            <span>碳水</span>
+                            <span class="text-primary">120 / 200 g</span>
+                        </div>
+                        <div class="nutrition-bar">
+                            <div class="nutrition-fill" style="width: 60%; animation: slideLeft 1s ease-out 0.4s forwards; opacity: 0;"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-4 pt-4 border-t border-gray-700 text-center slide-up-delay-4">
+                    <p class="text-gray-400 text-sm">还需摄入 <span class="text-primary font-medium">350 kcal</span></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scene 5: Outro -->
+    <div id="scene5" class="scene">
+        <div class="text-center max-w-4xl">
+            <!-- Icons row -->
+            <div class="flex justify-center gap-8 md:gap-16 mb-12">
+                <div class="scale-in">
+                    <div class="w-20 h-20 md:w-24 md:h-24 bg-gray-800 rounded-2xl flex items-center justify-center text-4xl md:text-5xl">
+                        💬
+                    </div>
+                    <p class="mt-3 text-gray-400">AI 对话</p>
+                </div>
+                <div class="scale-in-delay-1">
+                    <div class="w-20 h-20 md:w-24 md:h-24 bg-gray-800 rounded-2xl flex items-center justify-center text-4xl md:text-5xl">
+                        🧠
+                    </div>
+                    <p class="mt-3 text-gray-400">偏好记忆</p>
+                </div>
+                <div class="scale-in-delay-2">
+                    <div class="w-20 h-20 md:w-24 md:h-24 bg-gray-800 rounded-2xl flex items-center justify-center text-4xl md:text-5xl">
+                        📊
+                    </div>
+                    <p class="mt-3 text-gray-400">营养目标</p>
+                </div>
+            </div>
+
+            <!-- Logo -->
+            <div class="mb-8 scale-in-delay-3">
+                <div class="w-32 h-32 mx-auto bg-primary rounded-3xl flex items-center justify-center text-6xl shadow-xl shadow-primary/30 pulse">
+                    🍽️
+                </div>
+            </div>
+
+            <!-- Title -->
+            <h1 class="text-4xl md:text-6xl font-bold mb-4 scale-in-delay-4">
+                浙大食堂助手
+            </h1>
+
+            <!-- Slogan -->
+            <p class="text-2xl md:text-3xl text-primary font-medium scale-in-delay-5">
+                让每一餐都有答案
+            </p>
+
+            <!-- Tech stack -->
+            <div class="mt-12 scale-in-delay-5">
+                <div class="flex flex-wrap justify-center gap-4 text-gray-500 text-sm">
+                    <span class="bg-gray-800 px-4 py-2 rounded-full">React</span>
+                    <span class="bg-gray-800 px-4 py-2 rounded-full">FastAPI</span>
+                    <span class="bg-gray-800 px-4 py-2 rounded-full">腾讯混元 AI</span>
+                    <span class="bg-gray-800 px-4 py-2 rounded-full">SQLite</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Progress Indicator -->
+    <div class="fixed top-6 left-1/2 -translate-x-1/2 flex gap-3 z-50">
+        <div id="dot1" class="progress-dot active"></div>
+        <div id="dot2" class="progress-dot"></div>
+        <div id="dot3" class="progress-dot"></div>
+        <div id="dot4" class="progress-dot"></div>
+        <div id="dot5" class="progress-dot"></div>
+    </div>
+
+    <!-- Scene counter -->
+    <div class="fixed top-6 right-6 text-gray-400 text-sm z-50">
+        <span id="sceneCounter">1</span> / 5
+    </div>
+
+    <!-- Hint -->
+    <div class="hint">
+        点击或按空格键切换场景
+    </div>
+
+    <script>
+        let currentScene = 1;
+        const totalScenes = 5;
+
+        function showScene(sceneNum) {
+            // Hide all scenes
+            for (let i = 1; i <= totalScenes; i++) {
+                document.getElementById(`scene${i}`).classList.remove('active');
+                document.getElementById(`dot${i}`).classList.remove('active');
+            }
+
+            // Show current scene
+            document.getElementById(`scene${sceneNum}`).classList.add('active');
+            document.getElementById(`dot${sceneNum}`).classList.add('active');
+            document.getElementById('sceneCounter').textContent = sceneNum;
+
+            // Re-trigger animations by removing and re-adding the scene
+            const scene = document.getElementById(`scene${sceneNum}`);
+            const content = scene.innerHTML;
+            scene.innerHTML = '';
+            void scene.offsetWidth; // Trigger reflow
+            scene.innerHTML = content;
+        }
+
+        function nextScene() {
+            currentScene = currentScene >= totalScenes ? 1 : currentScene + 1;
+            showScene(currentScene);
+        }
+
+        function prevScene() {
+            currentScene = currentScene <= 1 ? totalScenes : currentScene - 1;
+            showScene(currentScene);
+        }
+
+        // Event listeners
+        document.addEventListener('click', nextScene);
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space') {
+                e.preventDefault();
+                nextScene();
+            } else if (e.code === 'ArrowRight') {
+                nextScene();
+            } else if (e.code === 'ArrowLeft') {
+                prevScene();
+            }
+        });
+
+        // Touch support for mobile
+        let touchStartX = 0;
+        document.addEventListener('touchstart', (e) => {
+            touchStartX = e.touches[0].clientX;
+        });
+        document.addEventListener('touchend', (e) => {
+            const touchEndX = e.changedTouches[0].clientX;
+            const diff = touchStartX - touchEndX;
+
+            if (Math.abs(diff) < 50) {
+                // Tap
+                nextScene();
+            } else if (diff > 50) {
+                // Swipe left
+                nextScene();
+            } else {
+                // Swipe right
+                prevScene();
+            }
+        });
+
+        // Initialize
+        showScene(1);
+
+        // Auto-advance (optional, comment out if not needed)
+        // setInterval(nextScene, 20000);
+    </script>
+</body>
+</html>
