@@ -4,6 +4,7 @@ import { Bot, Brain, ChevronRight, Send, Sparkles, Trash2, User } from "lucide-r
 import { motion } from "motion/react";
 import { cn } from "@/src/lib/utils";
 import { dishService, userService } from "@/src/services/api";
+import { QuickReplyButtons } from "@/src/components/QuickReplyButtons";
 
 interface RecommendedDish {
   id: number;
@@ -21,10 +22,16 @@ interface RecommendedDish {
   image: string;
 }
 
+interface QuickReply {
+  step: string;
+  options: string[];
+}
+
 interface Message {
   role: "user" | "model";
   content: string;
   dishes?: RecommendedDish[];
+  quickReply?: QuickReply;
 }
 
 interface PreferenceMemory {
@@ -208,6 +215,7 @@ export default function Recommend() {
   const [inputValue, setInputValue] = useState("");
   const [chatLoading, setChatLoading] = useState(false);
   const [memory, setMemory] = useState<PreferenceMemory>(loadLocalMemory);
+  const [chatContext, setChatContext] = useState<Record<string, string | null>>({});
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -237,11 +245,11 @@ export default function Recommend() {
     ? `已记住: ${memory.tastes.join("、")} / ${memory.goal} / ${memory.budget} / 常在 ${memory.lunchTime} 吃饭 / 忌口: ${memory.avoid}`
     : "未启用偏好记忆";
 
-  const handleChat = async () => {
-    if (!inputValue.trim() || chatLoading) return;
+  const handleChat = async (directInput?: string) => {
+    const inputText = directInput || inputValue.trim();
+    if (!inputText || chatLoading) return;
 
-    const term = inputValue.trim();
-    setMessages((prev) => [...prev, { role: "user", content: term }]);
+    setMessages((prev) => [...prev, { role: "user", content: inputText }]);
     setInputValue("");
     setChatLoading(true);
 
@@ -272,8 +280,9 @@ export default function Recommend() {
           messages: [
             { role: "system", content: systemPrompt },
             ...conversationHistory,
-            { role: "user", content: term },
+            { role: "user", content: inputText },
           ],
+          context: chatContext,
         }),
       });
 
@@ -281,16 +290,30 @@ export default function Recommend() {
 
       const data = await response.json();
       const aiText = data.reply || "我暂时没想好，再给我一个口味或预算条件。";
-      const dishMatch = aiText.match(/\[DISHES:([\d,]+)\]/);
-      const dishIds = dishMatch ? dishMatch[1].split(",").map((id: string) => Number(id.trim())) : [];
-      const recommendedDishes = allDishes.filter((dish: any) => dishIds.includes(dish.id));
-      const cleanText = aiText.replace(/\[DISHES:[\d,]+\]/, "").trim();
 
-      setMessages((prev) => [...prev, { role: "model", content: cleanText, dishes: recommendedDishes }]);
+      // Update chat context from backend response
+      if (data.context) {
+        setChatContext(data.context);
+      }
+
+      // Check for quick_reply (follow-up question)
+      if (data.quick_reply) {
+        setMessages((prev) => [...prev, {
+          role: "model",
+          content: aiText,
+          quickReply: data.quick_reply,
+        }]);
+      } else {
+        const dishMatch = aiText.match(/\[DISHES:([\d,]+)\]/);
+        const dishIds = dishMatch ? dishMatch[1].split(",").map((id: string) => Number(id.trim())) : [];
+        const recommendedDishes = allDishes.filter((dish: any) => dishIds.includes(dish.id));
+        const cleanText = aiText.replace(/\[DISHES:[\d,]+\]/, "").trim();
+        setMessages((prev) => [...prev, { role: "model", content: cleanText, dishes: recommendedDishes }]);
+      }
     } catch (error) {
       console.error(error);
       const allDishes = await dishService.getAll();
-      const localDishes = pickLocalRecommendations(term, allDishes, memory);
+      const localDishes = pickLocalRecommendations(inputText, allDishes, memory);
       setMessages((prev) => [...prev, {
         role: "model",
         content: "现在 AI 通道不太稳，我先按菜品标签和你的偏好给出本地推荐。",
@@ -299,6 +322,16 @@ export default function Recommend() {
     } finally {
       setChatLoading(false);
     }
+  };
+
+  const handleQuickReplySelect = (option: string) => {
+    // Update context with selected option
+    setChatContext((prev) => ({
+      ...prev,
+      [messages[messages.length - 1]?.quickReply?.step || ""]: option,
+    }));
+    // Trigger chat with the selected option
+    handleChat(option);
   };
 
   return (
@@ -313,7 +346,10 @@ export default function Recommend() {
             <p className="text-xs text-gray-400 font-bold leading-relaxed max-w-[260px]">{memorySummary}</p>
           </div>
           <button
-            onClick={() => setMessages([{ role: "model", content: openingQuestions[Math.floor(Math.random() * openingQuestions.length)] }])}
+            onClick={() => {
+              setMessages([{ role: "model", content: openingQuestions[Math.floor(Math.random() * openingQuestions.length)] }]);
+              setChatContext({});
+            }}
             className="w-10 h-10 rounded-2xl bg-gray-50 flex items-center justify-center text-gray-400 active:scale-90 transition-all border border-gray-100"
           >
             <Trash2 className="w-4 h-4" />
@@ -380,6 +416,14 @@ export default function Recommend() {
                     </Link>
                   ))}
                 </div>
+              )}
+
+              {msg.quickReply && (
+                <QuickReplyButtons
+                  options={msg.quickReply.options}
+                  onSelect={handleQuickReplySelect}
+                  disabled={chatLoading}
+                />
               )}
             </div>
           ))}
