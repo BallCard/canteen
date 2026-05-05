@@ -1,5 +1,5 @@
 """
-浙大食堂助手 — Pydantic 模型
+校园食堂助手 — Pydantic 模型
 """
 from pydantic import BaseModel, Field
 from typing import Optional

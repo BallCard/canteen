@@ -10,10 +10,17 @@ from ..services.nutrition import get_today_summary, get_weekly_report
 router = APIRouter(prefix="/api/meal-logs", tags=["饮食记录"])
 
 
+def format_meal_log(log: dict) -> dict:
+    """Return the stable frontend meal-log shape."""
+    created_at = log.get("created_at", "")
+    time = log.get("time") or (created_at.split(" ")[1] if " " in created_at else created_at)
+    return {**log, "time": time}
+
+
 @router.get("/today")
 async def today_logs():
     """今日饮食记录"""
-    return data.meal_logs
+    return [format_meal_log(log) for log in data.meal_logs]
 
 
 @router.get("/weekly")
@@ -42,7 +49,7 @@ async def add_meal_log(log: MealLogCreate):
         "created_at": datetime.now().strftime("%Y-%m-%d %H:%M"),
     }
     data.meal_logs.append(new_log)
-    return new_log
+    return format_meal_log(new_log)
 
 
 @router.delete("/{log_id}")

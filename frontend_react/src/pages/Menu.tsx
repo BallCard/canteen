@@ -34,6 +34,7 @@ export default function Menu() {
   
   const [isContributionModalOpen, setIsContributionModalOpen] = useState(false);
   const [contribution, setContribution] = useState({ name: "", price: "", image: "" });
+  const [uploadHint, setUploadHint] = useState("");
   const [submitting, setSubmitting] = useState(false);
   
   useEffect(() => {
@@ -92,11 +93,13 @@ export default function Menu() {
     try {
       const data = await dishService.contribute({
         ...contribution,
-        price: Number(contribution.price)
+        price: Number(contribution.price),
+        canteen_id: Number(canteenId) || 1,
       });
       setDishes(prev => [data, ...prev]);
       setIsContributionModalOpen(false);
       setContribution({ name: "", price: "", image: "" });
+      setUploadHint("");
     } catch (e) {
       console.error(e);
     } finally {
@@ -159,7 +162,7 @@ export default function Menu() {
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-zju-green transition-colors" />
             <input
               type="text"
-              placeholder="搜索校内美味..."
+              placeholder="搜索今日菜单..."
               value={search}
               onFocus={() => setIsSearchFocused(true)}
               onBlur={() => setTimeout(() => setIsSearchFocused(false), 250)}
@@ -379,12 +382,20 @@ export default function Menu() {
 
                 <div className="flex flex-col gap-3">
                   <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">上传图片证据</span>
-                  <div className="w-full h-40 bg-[#F7F8FA] rounded-[2rem] flex flex-col items-center justify-center border-2 border-dashed border-gray-200 cursor-pointer hover:border-zju-green/30 transition-colors group">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setContribution({ ...contribution, image: "/images/dishes/qingchaoshishu.svg" });
+                      setUploadHint("已记录模拟图片证据，真实上传待接入云存储");
+                    }}
+                    className="w-full h-40 bg-[#F7F8FA] rounded-[2rem] flex flex-col items-center justify-center border-2 border-dashed border-gray-200 cursor-pointer hover:border-zju-green/30 transition-colors group"
+                  >
                     <div className="w-12 h-12 rounded-2xl bg-white shadow-sm flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
                       <Camera className="w-6 h-6 text-zju-green" />
                     </div>
                     <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">拍照并上传</span>
-                  </div>
+                    {uploadHint && <span className="mt-2 text-[10px] font-bold text-zju-green">{uploadHint}</span>}
+                  </button>
                 </div>
               </div>
 

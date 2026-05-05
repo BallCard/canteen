@@ -81,7 +81,7 @@ export default function Index() {
       <header className="sticky top-0 z-20 px-6 pt-8 pb-4 bg-[#F7F8FA]/80 backdrop-blur-xl flex justify-between items-center">
         <div className="flex flex-col">
           <span className="text-[10px] font-black uppercase tracking-[0.2em] text-zju-green/60">智慧校园</span>
-          <h1 className="text-2xl font-black text-[#1A1A1A] tracking-tight">浙大食堂助手</h1>
+          <h1 className="text-2xl font-black text-[#1A1A1A] tracking-tight">校园食堂助手</h1>
         </div>
         <Link to="/map" className="w-10 h-10 bg-white rounded-2xl shadow-premium border border-white flex items-center justify-center active:scale-90 transition-all group">
           <MapPin className="w-5 h-5 text-zju-green group-hover:scale-110 transition-transform" />

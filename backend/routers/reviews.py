@@ -9,10 +9,19 @@ from ..models import ReviewCreate
 router = APIRouter(prefix="/api/reviews", tags=["点评"])
 
 
+def format_review(review: dict) -> dict:
+    """Return the stable frontend review shape."""
+    return {
+        **review,
+        "date": review.get("date") or review.get("created_at"),
+        "avatar": review.get("avatar") or f"https://api.dicebear.com/7.x/avataaars/svg?seed={review.get('user', 'student')}",
+    }
+
+
 @router.get("")
 async def list_reviews(dish_id: int = Query(...)):
     """获取菜品点评"""
-    return [r for r in data.reviews if r["dish_id"] == dish_id]
+    return [format_review(r) for r in data.reviews if r["dish_id"] == dish_id]
 
 
 @router.post("")
@@ -40,7 +49,7 @@ async def create_review(review: ReviewCreate):
     dish["rating"] = round(sum(r["rating"] for r in dish_reviews) / len(dish_reviews), 1)
     dish["review_count"] = len(dish_reviews)
 
-    return new_review
+    return format_review(new_review)
 
 
 @router.post("/{review_id}/like")
@@ -50,4 +59,4 @@ async def like_review(review_id: int):
     if not review:
         raise HTTPException(404, "点评未找到")
     review["likes"] += 1
-    return {"success": True, "likes": review["likes"]}
+    return format_review(review)

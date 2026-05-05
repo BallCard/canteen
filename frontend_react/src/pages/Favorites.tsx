@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { ChevronLeft, Star, Heart, Sparkles } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
-import { cn } from "@/src/lib/utils";
+import { userService } from "@/src/services/api";
 
 interface Dish {
   id: number;
@@ -20,21 +20,17 @@ export default function Favorites() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("/api/favorites")
-      .then((res) => res.json())
+    userService.getFavorites()
       .then((data) => {
         setFavorites(data);
         setLoading(false);
-      });
+      })
+      .catch(() => setLoading(false));
   }, []);
 
   const removeFavorite = async (dishId: number) => {
     try {
-      await fetch("/api/favorites/toggle", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ dish_id: dishId }),
-      });
+      await userService.removeFavorite(dishId);
       setFavorites((prev) => prev.filter((d) => d.id !== dishId));
     } catch (e) {
       console.error(e);

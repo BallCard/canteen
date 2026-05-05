@@ -26,6 +26,7 @@ export default function Nutrition() {
   const [logs, setLogs] = useState<MealLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [scanHint, setScanHint] = useState("");
   const [newMeal, setNewMeal] = useState({ name: "", calories: "", protein: "", fat: "", carbs: "", type: "正餐" });
   const [goals, setGoals] = useState<Goals>({ calories: 2400, protein: 150, fat: 70, carbs: 300 });
 
@@ -339,7 +340,13 @@ export default function Nutrition() {
       {/* Premium Floating Actions Toolbar */}
       <div className="fixed bottom-28 left-0 right-0 px-8 z-40">
         <div className="max-w-md mx-auto flex items-center gap-4">
-          <button className="flex-1 bg-zju-green text-white h-16 rounded-[2rem] font-black text-[10px] uppercase tracking-[0.2em] flex items-center justify-center gap-3 shadow-xl shadow-zju-green/30 active:scale-95 transition-all border-4 border-white">
+          <button
+            onClick={() => {
+              setScanHint("AI 拍照识别为演示态，请先用手动记录添加餐食");
+              setTimeout(() => setScanHint(""), 2600);
+            }}
+            className="flex-1 bg-zju-green text-white h-16 rounded-[2rem] font-black text-[10px] uppercase tracking-[0.2em] flex items-center justify-center gap-3 shadow-xl shadow-zju-green/30 active:scale-95 transition-all border-4 border-white"
+          >
             <Camera className="w-5 h-5" /> AI 拍照识别
           </button>
           <button 
@@ -352,6 +359,11 @@ export default function Nutrition() {
             <BarChart3 className="w-6 h-6" />
           </button>
         </div>
+        {scanHint && (
+          <div className="mt-3 mx-auto max-w-md rounded-2xl bg-white px-4 py-3 text-center text-[11px] font-black text-zju-green shadow-premium border border-white">
+            {scanHint}
+          </div>
+        )}
       </div>
     </div>
   );

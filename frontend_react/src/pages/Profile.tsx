@@ -1,36 +1,91 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { MessageSquare, Heart, Settings, UtensilsCrossed, Info, ChevronRight, Award } from "lucide-react";
+import { MessageSquare, Heart, Settings, UtensilsCrossed, Info, ChevronRight, Award, TrendingUp, Calendar, Flame } from "lucide-react";
 import { motion } from "motion/react";
 import { cn } from "@/src/lib/utils";
+import { userService } from "@/src/services/api";
 
 interface ProfileData {
   nickname: string;
   points: number;
   rank: number;
   preferences: {
-    taste: string[];
+    taste?: string[];
+    favorites?: number[];
+    preference?: string;
     goal: string;
+    budget?: string;
+    lunchTime?: string;
+    avoid?: string;
+    memoryEnabled?: boolean;
+    connectedApps?: string[];
+  };
+  stats?: {
+    logged_days: number;
+    total_reviews: number;
+    favorite_count: number;
+    calories_today: number;
   };
 }
 
 export default function Profile() {
   const navigate = useNavigate();
   const [profile, setProfile] = useState<ProfileData | null>(null);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    fetch("/api/users/profile")
-      .then((res) => res.json())
+    userService.getProfile()
       .then((data) => setProfile(data));
   }, []);
 
   if (!profile) return null;
 
+  const preferences = profile.preferences || { goal: "均衡" };
+  const tastes = preferences.taste || [];
+
+  const savePreferences = async (next: Partial<ProfileData["preferences"]>) => {
+    const updated = { ...preferences, ...next };
+    setProfile({ ...profile, preferences: updated });
+    setSaving(true);
+    try {
+      await userService.updatePreferences({
+        tastes: updated.taste || [],
+        goal: updated.goal,
+        budget: updated.budget,
+        lunchTime: updated.lunchTime,
+        avoid: updated.avoid,
+        memoryEnabled: updated.memoryEnabled,
+        connectedApps: updated.connectedApps,
+      });
+      localStorage.setItem("canteen_preference_memory", JSON.stringify({
+        memoryEnabled: updated.memoryEnabled ?? true,
+        tastes: updated.taste || [],
+        goal: updated.goal || "均衡",
+        budget: updated.budget || "15元以内",
+        lunchTime: updated.lunchTime || "12:10",
+        avoid: updated.avoid || "无",
+      }));
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const toggleTaste = (taste: string) => {
+    const next = tastes.includes(taste) ? tastes.filter((item) => item !== taste) : [...tastes, taste];
+    savePreferences({ taste: next });
+  };
+
   const menuItems = [
-    { icon: MessageSquare, label: "我的点评", count: 12, color: "text-blue-500", bg: "bg-blue-50", path: "/profile" },
-    { icon: Heart, label: "我的收藏", count: 8, color: "text-red-500", bg: "bg-red-50", path: "/favorites" },
+    { icon: MessageSquare, label: "我的点评", count: profile.stats?.total_reviews ?? 0, color: "text-blue-500", bg: "bg-blue-50", path: "/profile" },
+    { icon: Heart, label: "我的收藏", count: profile.stats?.favorite_count ?? 0, color: "text-red-500", bg: "bg-red-50", path: "/favorites" },
     { icon: UtensilsCrossed, label: "营养目标设置", color: "text-zju-green", bg: "bg-zju-green-light", path: "/track" },
-    { icon: Settings, label: "偏好设置", color: "text-gray-500", bg: "bg-gray-100", path: "/profile" },
+    { icon: Settings, label: "AI 偏好记忆", color: "text-gray-500", bg: "bg-gray-100", path: "/recommend" },
+  ];
+
+  const statsCards = [
+    { icon: Calendar, label: "打卡天数", value: profile.stats?.logged_days ?? 0, unit: "天", color: "text-blue-500", bg: "bg-blue-50" },
+    { icon: Flame, label: "今日摄入", value: profile.stats?.calories_today ?? 0, unit: "kcal", color: "text-orange-500", bg: "bg-orange-50" },
+    { icon: TrendingUp, label: "本周进步", value: "+12", unit: "%", color: "text-green-500", bg: "bg-green-50" },
   ];
 
   return (
@@ -64,7 +119,7 @@ export default function Profile() {
               <div className="w-px h-6 bg-gray-200" />
               <div className="flex flex-col items-center">
                 <span className="text-base font-black text-[#1A1A1A] tracking-tight">#{profile.rank}</span>
-                <span className="text-[10px] text-gray-400 uppercase font-black tracking-widest">校内排名</span>
+                <span className="text-[10px] text-gray-400 uppercase font-black tracking-widest">社区排名</span>
               </div>
             </div>
           </div>
@@ -73,6 +128,27 @@ export default function Profile() {
 
       {/* Menu List with Bento feel */}
       <div className="px-6 -mt-4 flex flex-col gap-6 relative z-10">
+        {/* Stats Cards */}
+        <div className="grid grid-cols-3 gap-3">
+          {statsCards.map((stat, index) => (
+            <motion.div
+              key={index}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.05 + index * 0.05 }}
+              className="bg-white rounded-2xl p-4 border border-white shadow-premium flex flex-col items-center gap-2"
+            >
+              <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center", stat.bg, stat.color)}>
+                <stat.icon className="w-5 h-5" />
+              </div>
+              <div className="flex flex-col items-center gap-0.5">
+                <span className="text-lg font-black text-[#1A1A1A] tracking-tight">{stat.value}</span>
+                <span className="text-[9px] text-gray-400 font-black uppercase tracking-wider">{stat.label}</span>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+
         <div className="grid grid-cols-1 gap-3">
           {menuItems.map((item, index) => (
             <motion.button
@@ -97,6 +173,90 @@ export default function Profile() {
           ))}
         </div>
 
+        <section className="bg-white rounded-3xl p-6 border border-white shadow-premium flex flex-col gap-5">
+          <div className="flex justify-between items-start gap-4">
+            <div className="flex flex-col gap-1">
+              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-zju-green/60">AI 记忆</span>
+              <h3 className="text-lg font-black text-[#1A1A1A] tracking-tight">让助手记住你的吃饭习惯</h3>
+              <p className="text-xs text-gray-400 font-bold leading-relaxed">用于推荐时自动考虑口味、预算、饭点和忌口。</p>
+            </div>
+            <button
+              onClick={() => savePreferences({ memoryEnabled: !(preferences.memoryEnabled ?? true) })}
+              className={cn(
+                "px-4 py-2 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all",
+                preferences.memoryEnabled ?? true ? "bg-zju-green text-white" : "bg-gray-100 text-gray-400"
+              )}
+            >
+              {preferences.memoryEnabled ?? true ? "已开启" : "已关闭"}
+            </button>
+          </div>
+
+          <div className="flex flex-wrap gap-2">
+            {["少油", "高蛋白", "清淡", "爱吃辣", "控制预算", "素食友好"].map((taste) => (
+              <button
+                key={taste}
+                onClick={() => toggleTaste(taste)}
+                className={cn(
+                  "px-4 py-2 rounded-2xl text-[11px] font-black transition-all",
+                  tastes.includes(taste) ? "bg-zju-green-light text-zju-green border border-zju-green/20" : "bg-[#F7F8FA] text-gray-400 border border-gray-100"
+                )}
+              >
+                {taste}
+              </button>
+            ))}
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <label className="flex flex-col gap-2">
+              <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">营养目标</span>
+              <select
+                value={preferences.goal || "均衡"}
+                onChange={(event) => savePreferences({ goal: event.target.value })}
+                className="bg-[#F7F8FA] rounded-2xl px-4 py-3 text-xs font-bold focus:outline-none"
+              >
+                <option>均衡</option>
+                <option>减脂</option>
+                <option>增肌</option>
+                <option>控糖</option>
+              </select>
+            </label>
+            <label className="flex flex-col gap-2">
+              <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">午饭时间</span>
+              <input
+                value={preferences.lunchTime || "12:10"}
+                onChange={(event) => savePreferences({ lunchTime: event.target.value })}
+                className="bg-[#F7F8FA] rounded-2xl px-4 py-3 text-xs font-bold focus:outline-none"
+              />
+            </label>
+            <label className="flex flex-col gap-2">
+              <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">预算</span>
+              <input
+                value={preferences.budget || "15元以内"}
+                onChange={(event) => savePreferences({ budget: event.target.value })}
+                className="bg-[#F7F8FA] rounded-2xl px-4 py-3 text-xs font-bold focus:outline-none"
+              />
+            </label>
+            <label className="flex flex-col gap-2">
+              <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">忌口</span>
+              <input
+                value={preferences.avoid || "无"}
+                onChange={(event) => savePreferences({ avoid: event.target.value })}
+                className="bg-[#F7F8FA] rounded-2xl px-4 py-3 text-xs font-bold focus:outline-none"
+              />
+            </label>
+          </div>
+
+          <div className="grid grid-cols-3 gap-2">
+            {(preferences.connectedApps || ["QQ 群", "日历", "运动 App"]).map((app) => (
+              <div key={app} className="bg-[#F7F8FA] rounded-2xl px-3 py-3 text-center border border-gray-100">
+                <span className="text-[10px] font-black text-gray-500">{app}</span>
+              </div>
+            ))}
+          </div>
+
+          <span className="text-[10px] font-black text-gray-300 uppercase tracking-widest">{saving ? "保存中..." : "偏好会同步给 AI 推荐"}</span>
+        </section>
+
         <div className="bg-white rounded-3xl p-2 border border-white shadow-premium">
           <button className="w-full flex items-center justify-between p-4 hover:bg-gray-50 transition-colors rounded-2xl group">
             <div className="flex items-center gap-4">
@@ -112,7 +272,7 @@ export default function Profile() {
         <div className="flex flex-col items-center gap-1.5 opacity-30 select-none py-10 grayscale">
            <div className="flex items-center gap-2">
              <div className="w-6 h-[1px] bg-gray-400" />
-             <h1 className="text-xs font-black tracking-[0.3em] uppercase">浙大食堂助手</h1>
+             <h1 className="text-xs font-black tracking-[0.3em] uppercase">校园食堂助手</h1>
              <div className="w-6 h-[1px] bg-gray-400" />
            </div>
            <span className="text-[9px] font-black tracking-widest text-zju-green">BUILD 2026.04.29-PREMIUM</span>

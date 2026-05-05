@@ -24,8 +24,8 @@ interface Canteen {
   name: string;
   distance: string;
   status: string;
-  lat: number;
-  lng: number;
+  lat?: number;
+  lng?: number;
 }
 
 function RecenterMap({ coords }: { coords: [number, number] }) {
@@ -122,7 +122,7 @@ export default function CanteenMap() {
 
       <div className="flex-1">
         <MapContainer 
-          center={[30.302, 120.085]} 
+          center={[30.302, 120.085]}
           zoom={15} 
           scrollWheelZoom={true} 
           className="w-full h-full"
@@ -133,10 +133,13 @@ export default function CanteenMap() {
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
           <MapControls />
-          {canteens.map((canteen) => (
+          {canteens.map((canteen, index) => {
+            const lat = canteen.lat ?? 30.302 + index * 0.003;
+            const lng = canteen.lng ?? 120.085 + index * 0.003;
+            return (
             <Marker 
               key={canteen.id} 
-              position={[canteen.lat, canteen.lng]}
+              position={[lat, lng]}
               eventHandlers={{
                 click: () => setSelectedCanteen(canteen),
               }}
@@ -155,8 +158,8 @@ export default function CanteenMap() {
                 </div>
               </Popup>
             </Marker>
-          ))}
-          {selectedCanteen && <RecenterMap coords={[selectedCanteen.lat, selectedCanteen.lng]} />}
+          )})}
+          {selectedCanteen && <RecenterMap coords={[selectedCanteen.lat ?? 30.302, selectedCanteen.lng ?? 120.085]} />}
         </MapContainer>
       </div>
 
@@ -176,7 +179,7 @@ export default function CanteenMap() {
                 <h3 className="text-2xl font-black text-[#1A1A1A] tracking-tight">{selectedCanteen.name}</h3>
                 <div className="flex items-center gap-2 text-gray-400 text-[10px] font-bold">
                   <MapPin className="w-3 h-3" />
-                  <span className="uppercase tracking-widest">浙大紫金港校区</span>
+                  <span className="uppercase tracking-widest">校园核心餐饮区</span>
                 </div>
               </div>
               <button 
@@ -206,7 +209,7 @@ export default function CanteenMap() {
                  查看菜单
                </button>
                <button className="flex-[1.5] h-14 bg-zju-green text-white rounded-[1.5rem] font-black text-[10px] uppercase tracking-[0.2em] flex items-center justify-center gap-3 shadow-xl shadow-zju-green/30 active:scale-95 transition-all">
-                  <Navigation className="w-4 h-4" /> Start Navigation
+                  <Navigation className="w-4 h-4" /> 开始导航
                </button>
             </div>
           </motion.div>

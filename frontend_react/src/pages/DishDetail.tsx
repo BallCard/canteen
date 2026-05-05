@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { ChevronLeft, Share2, Plus, Star, UserCheck, Heart, Info, Award, ThumbsUp, ArrowUpDown } from "lucide-react";
+import { ChevronLeft, Share2, Plus, Star, UserCheck, Heart, Info, Award, ThumbsUp, ArrowUpDown, MessageCircle, Users, QrCode, Link as LinkIcon, CheckCircle2 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { cn } from "@/src/lib/utils";
 import { dishService, reviewService, userService, nutritionService } from "@/src/services/api";
@@ -16,7 +16,12 @@ interface Dish {
   is_official?: boolean;
   is_verified?: boolean;
   confirmations?: number;
-  nutrients: {
+  canteen_name?: string;
+  description?: string;
+  protein?: number;
+  fat?: number;
+  carbs?: number;
+  nutrients?: {
     protein: number;
     fat: number;
     carbs: number;
@@ -39,6 +44,7 @@ export default function DishDetail() {
   const [dish, setDish] = useState<Dish | null>(null);
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [added, setAdded] = useState(false);
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
   const [newReview, setNewReview] = useState({ rating: 5, content: "" });
@@ -46,21 +52,46 @@ export default function DishDetail() {
   const [confirming, setConfirming] = useState(false);
   const [isFavorited, setIsFavorited] = useState(false);
   const [sortByRating, setSortByRating] = useState(false);
+  const [isShareOpen, setIsShareOpen] = useState(false);
+  const [shareStatus, setShareStatus] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
       if (!dishId) return;
+      setLoading(true);
+      setError(null);
+
       try {
-        const [dishData, reviewsData, favoritesData] = await Promise.all([
+        const results = await Promise.allSettled([
           dishService.getById(dishId),
           reviewService.getByDishId(dishId),
           userService.getFavorites(),
         ]);
-        setDish(dishData);
-        setReviews(reviewsData);
-        setIsFavorited(favoritesData.some((f: any) => f.id === Number(dishId)));
+
+        if (results[0].status === "fulfilled") {
+          const loadedDish = results[0].value;
+          setDish({
+            ...loadedDish,
+            nutrients: loadedDish.nutrients || {
+              protein: loadedDish.protein || 0,
+              fat: loadedDish.fat || 0,
+              carbs: loadedDish.carbs || 0,
+            },
+          });
+        } else {
+          throw new Error("Failed to load dish details");
+        }
+
+        if (results[1].status === "fulfilled") {
+          setReviews(results[1].value);
+        }
+
+        if (results[2].status === "fulfilled") {
+          setIsFavorited(results[2].value.some((f: any) => f.id === Number(dishId)));
+        }
       } catch (error) {
         console.error("Failed to fetch dish detail:", error);
+        setError(error instanceof Error ? error.message : "加载失败,请重试");
       } finally {
         setLoading(false);
       }
@@ -100,9 +131,9 @@ export default function DishDetail() {
         name: dish.name, 
         calories: dish.calories, 
         type: "正餐",
-        protein: dish.nutrients.protein,
-        fat: dish.nutrients.fat,
-        carbs: dish.nutrients.carbs
+        protein: dish.nutrients?.protein || dish.protein || 0,
+        fat: dish.nutrients?.fat || dish.fat || 0,
+        carbs: dish.nutrients?.carbs || dish.carbs || 0
       });
       setAdded(true);
       setTimeout(() => setAdded(false), 2000);
@@ -116,7 +147,7 @@ export default function DishDetail() {
     setConfirming(true);
     try {
       const updated = await dishService.confirmDish(dish.id);
-      setDish(updated);
+      setDish({ ...dish, ...updated });
     } catch (e) {
       console.error(e);
     } finally {
@@ -146,7 +177,7 @@ export default function DishDetail() {
     try {
       const data = await reviewService.create({
         dish_id: Number(dishId),
-        user: "浙大吃货", 
+        user: "校园吃货",
         rating: newReview.rating,
         content: newReview.content,
       });
@@ -160,11 +191,38 @@ export default function DishDetail() {
     }
   };
 
-  if (loading || !dish) return (
+  if (loading) return (
     <div className="flex flex-col items-center justify-center h-screen bg-white">
       <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1 }} className="w-10 h-10 border-4 border-zju-green border-t-transparent rounded-full" />
     </div>
   );
+
+  if (error) return (
+    <div className="flex flex-col items-center justify-center h-screen bg-white px-6">
+      <div className="text-6xl mb-4">😕</div>
+      <h2 className="text-xl font-black text-gray-800 mb-2">加载失败</h2>
+      <p className="text-sm text-gray-400 mb-6">{error}</p>
+      <button
+        onClick={() => window.location.reload()}
+        className="px-6 py-3 bg-zju-green text-white rounded-2xl font-bold active:scale-95 transition-all"
+      >
+        重新加载
+      </button>
+    </div>
+  );
+
+  if (!dish) return null;
+
+  const nutrients = dish.nutrients || {
+    protein: dish.protein || 0,
+    fat: dish.fat || 0,
+    carbs: dish.carbs || 0,
+  };
+
+  const handleShareAction = (label: string) => {
+    setShareStatus(`已生成${label}模拟分享卡片`);
+    setTimeout(() => setShareStatus(null), 2200);
+  };
 
   return (
     <div className="flex flex-col min-h-screen bg-[#F7F8FA] pb-32">
@@ -186,7 +244,10 @@ export default function DishDetail() {
           >
             <Heart className={cn("w-5 h-5", isFavorited && "fill-current")} />
           </button>
-          <button className="w-12 h-12 bg-black/10 backdrop-blur-xl rounded-2xl flex items-center justify-center text-white active:scale-90 transition-all border border-white/10">
+          <button
+            onClick={() => setIsShareOpen(true)}
+            className="w-12 h-12 bg-black/10 backdrop-blur-xl rounded-2xl flex items-center justify-center text-white active:scale-90 transition-all border border-white/10"
+          >
             <Share2 className="w-5 h-5" />
           </button>
         </div>
@@ -227,7 +288,7 @@ export default function DishDetail() {
                   </div>
                   <div className="flex flex-col">
                     <span className="text-[10px] font-black uppercase tracking-widest leading-tight">
-                      {dish.is_verified ? "官方认证" : "校友贡献"}
+                      {dish.is_verified ? "官方认证" : "同学贡献"}
                     </span>
                     <span className="text-xs font-bold mt-0.5">
                       {dish.is_verified ? "食堂官方菜单项" : `${dish.confirmations} 位同学确认存在`}
@@ -314,17 +375,17 @@ export default function DishDetail() {
                   </div>
                   <div className="flex flex-col gap-2 relative">
                     <div className="absolute left-[-8px] top-1/4 bottom-1/4 w-[1px] bg-gray-200" />
-                    <span className="text-sm font-black text-[#1A1A1A]">{dish.nutrients.protein}g</span>
+                    <span className="text-sm font-black text-[#1A1A1A]">{nutrients.protein}g</span>
                     <span className="text-[9px] font-black uppercase tracking-widest text-gray-400">蛋白质</span>
                   </div>
                   <div className="flex flex-col gap-2 relative">
                     <div className="absolute left-[-8px] top-1/4 bottom-1/4 w-[1px] bg-gray-200" />
-                    <span className="text-sm font-black text-[#1A1A1A]">{dish.nutrients.fat}g</span>
+                    <span className="text-sm font-black text-[#1A1A1A]">{nutrients.fat}g</span>
                     <span className="text-[9px] font-black uppercase tracking-widest text-gray-400">脂肪</span>
                   </div>
                   <div className="flex flex-col gap-2 relative">
                     <div className="absolute left-[-8px] top-1/4 bottom-1/4 w-[1px] bg-gray-200" />
-                    <span className="text-sm font-black text-[#1A1A1A]">{dish.nutrients.carbs}g</span>
+                    <span className="text-sm font-black text-[#1A1A1A]">{nutrients.carbs}g</span>
                     <span className="text-[9px] font-black uppercase tracking-widest text-gray-400">碳水</span>
                   </div>
                </div>
@@ -336,7 +397,7 @@ export default function DishDetail() {
         <section className="flex flex-col gap-6 px-2">
           <div className="flex justify-between items-end">
             <div className="flex flex-col">
-              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-zju-green/60">校友评价</span>
+              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-zju-green/60">同学评价</span>
               <h3 className="text-xl font-black text-[#1A1A1A]">用户点评</h3>
             </div>
             <div className="flex gap-2">
@@ -418,7 +479,10 @@ export default function DishDetail() {
           >
             {added ? "已加入计划" : <><Plus className="w-4 h-4" /> 加入饮食计划</>}
           </button>
-          <button className="flex-1 h-16 bg-white/80 backdrop-blur-xl text-[#333] rounded-[2rem] font-black text-xs uppercase tracking-widest flex items-center justify-center gap-2 active:scale-95 transition-all shadow-premium border border-white">
+          <button
+            onClick={() => setIsShareOpen(true)}
+            className="flex-1 h-16 bg-white/80 backdrop-blur-xl text-[#333] rounded-[2rem] font-black text-xs uppercase tracking-widest flex items-center justify-center gap-2 active:scale-95 transition-all shadow-premium border border-white"
+          >
             <Share2 className="w-4 h-4" />
           </button>
         </div>
@@ -426,6 +490,74 @@ export default function DishDetail() {
 
       {/* Review Modal */}
       <AnimatePresence>
+        {isShareOpen && (
+          <div className="fixed inset-0 z-[100] flex items-end justify-center">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsShareOpen(false)}
+              className="absolute inset-0 bg-[#F7F8FA]/80 backdrop-blur-md"
+            />
+            <motion.div
+              initial={{ y: "100%" }}
+              animate={{ y: 0 }}
+              exit={{ y: "100%" }}
+              transition={{ type: "spring", damping: 30, stiffness: 300 }}
+              className="relative w-full max-w-lg bg-white rounded-t-[3rem] p-8 shadow-premium flex flex-col gap-6 pb-12 border-t border-white"
+            >
+              <div className="flex justify-between items-start">
+                <div className="flex flex-col">
+                  <span className="text-[10px] font-black uppercase tracking-[0.2em] text-zju-green/60">QQ 分享链路</span>
+                  <h2 className="text-2xl font-black text-[#1A1A1A] tracking-tight">邀请同学一起吃</h2>
+                </div>
+                <button onClick={() => setIsShareOpen(false)} className="w-10 h-10 bg-[#F7F8FA] rounded-2xl flex items-center justify-center text-gray-400">
+                  <ChevronLeft className="w-5 h-5 rotate-270" />
+                </button>
+              </div>
+
+              <div className="bg-[#F7F8FA] rounded-[2rem] p-4 border border-gray-100 flex gap-4">
+                <img src={dish.image} alt="" className="w-24 h-24 rounded-[1.5rem] object-cover bg-white" />
+                <div className="flex-1 flex flex-col justify-between py-1">
+                  <div>
+                    <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">饭局邀请卡</span>
+                    <h3 className="text-lg font-black text-[#1A1A1A] tracking-tight mt-1">{dish.name}</h3>
+                    <p className="text-xs text-gray-400 font-bold mt-1">{dish.canteen_name || "校园食堂"} · ¥{dish.price} · {dish.calories} kcal</p>
+                  </div>
+                  <p className="text-xs font-black text-zju-green">今天吃这个？一起去</p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                {[
+                  { label: "QQ 好友", icon: MessageCircle },
+                  { label: "QQ 群", icon: Users },
+                  { label: "QQ 空间", icon: QrCode },
+                  { label: "复制链接", icon: LinkIcon },
+                ].map((item) => (
+                  <button
+                    key={item.label}
+                    onClick={() => handleShareAction(item.label)}
+                    className="p-5 rounded-2xl bg-[#F7F8FA] border border-gray-100 flex items-center gap-3 text-left active:scale-95 transition-all"
+                  >
+                    <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center text-zju-green shadow-sm">
+                      <item.icon className="w-5 h-5" />
+                    </div>
+                    <span className="text-xs font-black text-[#1A1A1A] tracking-tight">{item.label}</span>
+                  </button>
+                ))}
+              </div>
+
+              {shareStatus && (
+                <div className="p-4 rounded-2xl bg-zju-green-light text-zju-green flex items-center gap-3">
+                  <CheckCircle2 className="w-5 h-5" />
+                  <span className="text-xs font-black">{shareStatus}</span>
+                </div>
+              )}
+            </motion.div>
+          </div>
+        )}
+
         {isReviewModalOpen && (
           <div className="fixed inset-0 z-[100] flex items-end justify-center">
             <motion.div
