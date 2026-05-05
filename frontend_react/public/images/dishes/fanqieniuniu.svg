@@ -1,8 +1,8 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 400 300">
   <defs>
     <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#FF922B"/>
-      <stop offset="100%" style="stop-color:#FD7E14"/>
+      <stop offset="0%" style="stop-color:#51CF66"/>
+      <stop offset="100%" style="stop-color:#40C057"/>
     </linearGradient>
   </defs>
 
@@ -17,16 +17,16 @@
   <text x="200" y="100" text-anchor="middle" font-size="64">🥩</text>
 
   <!-- 菜品名称 -->
-  <text x="200" y="165" text-anchor="middle" font-family="system-ui, sans-serif" font-size="28" font-weight="bold" fill="white">糖醋里脊</text>
+  <text x="200" y="165" text-anchor="middle" font-family="system-ui, sans-serif" font-size="28" font-weight="bold" fill="white">番茄牛腩</text>
 
   <!-- 价格和卡路里 -->
-  <text x="200" y="195" text-anchor="middle" font-family="system-ui, sans-serif" font-size="14" fill="rgba(255,255,255,0.9)">¥12.0 · 460kcal</text>
+  <text x="200" y="195" text-anchor="middle" font-family="system-ui, sans-serif" font-size="14" fill="rgba(255,255,255,0.9)">¥15.0 · 480kcal</text>
 
   <!-- 标签背景 -->
   <rect x="100" y="215" width="200" height="28" rx="14" fill="rgba(255,255,255,0.2)"/>
 
   <!-- 标签文字 -->
-  <text x="200" y="234" text-anchor="middle" font-family="system-ui, sans-serif" font-size="12" font-weight="600" fill="white">荤 · 人气</text>
+  <text x="200" y="234" text-anchor="middle" font-family="system-ui, sans-serif" font-size="12" font-weight="600" fill="white">清淡 · 荤 · 高蛋白</text>
 
   <!-- 营养标签 -->
   
