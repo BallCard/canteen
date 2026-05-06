@@ -1,80 +1,64 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-PROJECT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
-
-# 输出调试信息
-echo "DEBUG: SCRIPT_DIR=$SCRIPT_DIR"
-echo "DEBUG: PROJECT_DIR=$PROJECT_DIR"
-echo "DEBUG: PWD=$(pwd)"
-
+PORT="${DEPLOY_RUN_PORT:-5000}"
 BACKEND_PORT=3001
-FRONTEND_PORT="${DEPLOY_RUN_PORT:-5000}"
 
 # 清理端口
 fuser -k "$BACKEND_PORT"/tcp 2>/dev/null || true
-fuser -k "$FRONTEND_PORT"/tcp 2>/dev/null || true
+fuser -k "$PORT"/tcp 2>/dev/null || true
 sleep 1
 
-# 查找 dist 目录（添加更多可能的路径）
-POSSIBLE_DIST_PATHS=(
-    "$SCRIPT_DIR/frontend_react/dist"
-    "$PROJECT_DIR/frontend_react/dist"
-    "$SCRIPT_DIR/dist"
-    "$PROJECT_DIR/dist"
-    "/opt/bytefaas/frontend_react/dist"
-    "/opt/bytefaas/dist"
-    "$(pwd)/frontend_react/dist"
-)
-
-echo "DEBUG: Searching for dist directory..."
-
-DIST_DIR=""
-for path in "${POSSIBLE_DIST_PATHS[@]}"; do
-    echo "DEBUG: Checking $path"
-    if [ -d "$path" ]; then
-        DIST_DIR="$path"
-        echo "DEBUG: Found dist at: $DIST_DIR"
-        break
-    fi
-done
+# 动态查找 dist 目录
+DIST_DIR="$(find / -maxdepth 5 -path '*/frontend_react/dist/index.html' -type f 2>/dev/null | head -1)"
 
 if [ -z "$DIST_DIR" ]; then
-    echo "Error: dist directory not found. Searched paths:"
-    for path in "${POSSIBLE_DIST_PATHS[@]}"; do
-        echo "  - $path (exists: $([ -d "$path" ] && echo yes || echo no))"
-    done
-    # 列出当前目录内容
-    echo "Current directory contents:"
-    ls -la "$(pwd)"
-    exit 1
+  DIST_DIR="$(find / -maxdepth 4 -name 'index.html' -path '*/dist/index.html' -type f 2>/dev/null | head -1)"
 fi
 
-# 确定 express 模块路径
-EXPRESS_DIR="$SCRIPT_DIR/frontend_react"
-if [ ! -d "$EXPRESS_DIR/node_modules/express" ]; then
-    EXPRESS_DIR="$PROJECT_DIR/frontend_react"
+if [ -n "$DIST_DIR" ]; then
+  DIST_DIR="$(dirname "$DIST_DIR")"
+  echo "Found dist at: $DIST_DIR"
+else
+  echo "ERROR: Could not find dist directory"
+  echo "Listing search results:"
+  find / -maxdepth 4 -name "index.html" -type f 2>/dev/null | head -20
+  exit 1
 fi
-if [ ! -d "$EXPRESS_DIR/node_modules/express" ]; then
-    EXPRESS_DIR="$(pwd)"
+
+# 动态查找 express 模块
+EXPRESS_DIR=""
+for candidate in $(find / -maxdepth 5 -path '*/node_modules/express/package.json' -type f 2>/dev/null); do
+  EXPRESS_DIR="$(dirname "$(dirname "$(dirname "$candidate")")")"
+  break
+done
+
+if [ -z "$EXPRESS_DIR" ]; then
+  echo "ERROR: Could not find express module"
+  exit 1
 fi
 
-echo "DEBUG: EXPRESS_DIR=$EXPRESS_DIR"
+echo "Express at: $EXPRESS_DIR"
 
-echo "=== Starting Backend (Python/FastAPI) on port $BACKEND_PORT ==="
-cd "$PROJECT_DIR"
-python -m backend.main &
-BACKEND_PID=$!
-sleep 2
+# 动态查找 backend 目录
+BACKEND_DIR=""
+for candidate in $(find / -maxdepth 4 -name 'main.py' -path '*/backend/main.py' -type f 2>/dev/null); do
+  BACKEND_DIR="$(dirname "$(dirname "$candidate")")"
+  break
+done
 
-if ! kill -0 $BACKEND_PID 2>/dev/null; then
-    echo "Error: Backend failed to start"
-    exit 1
+echo "=== Starting Backend ==="
+if [ -n "$BACKEND_DIR" ]; then
+  cd "$BACKEND_DIR"
+  python -m backend.main &
+  BACKEND_PID=$!
+  sleep 2
+  echo "Backend started with PID $BACKEND_PID"
+else
+  echo "WARNING: Backend not found, running frontend-only mode"
 fi
-echo "Backend started with PID $BACKEND_PID"
 
-echo "=== Starting Frontend (Express) on port $FRONTEND_PORT ==="
+echo "=== Starting Frontend ==="
 cd "$EXPRESS_DIR"
 
 exec node -e "
@@ -83,7 +67,7 @@ const path = require('path');
 const http = require('http');
 
 const app = express();
-const PORT = '$FRONTEND_PORT';
+const PORT = '$PORT';
 const DIST_DIR = '$DIST_DIR';
 const BACKEND_PORT = '$BACKEND_PORT';
 
@@ -97,22 +81,13 @@ app.use('/api', (req, res) => {
     port: BACKEND_PORT,
     path: '/api' + req.url,
     method: req.method,
-    headers: {
-      ...req.headers,
-      host: 'localhost:' + BACKEND_PORT
-    }
+    headers: { ...req.headers, host: 'localhost:' + BACKEND_PORT }
   };
-
   const proxyReq = http.request(options, (proxyRes) => {
     res.writeHead(proxyRes.statusCode, proxyRes.headers);
     proxyRes.pipe(res);
   });
-
-  proxyReq.on('error', (err) => {
-    console.error('Proxy error:', err.message);
-    res.status(503).json({ error: 'Backend service unavailable' });
-  });
-
+  proxyReq.on('error', () => res.status(503).json({ error: 'Backend unavailable' }));
   req.pipe(proxyReq);
 });
 
@@ -120,7 +95,5 @@ app.get('*', (req, res) => {
   res.sendFile(path.join(DIST_DIR, 'index.html'));
 });
 
-app.listen(PORT, '0.0.0.0', () => {
-  console.log('Frontend server running on port ' + PORT);
-});
+app.listen(PORT, '0.0.0.0', () => console.log('Server running on port ' + PORT));
 "
