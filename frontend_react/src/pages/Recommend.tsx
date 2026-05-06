@@ -122,7 +122,7 @@ function calculatePriceScore(dish: RecommendedDish, budget?: string): number {
 
   if (budget === "10元内" || budget === "10元以内") {
     return price <= 10 ? 100 : Math.max(0, 100 - (price - 10) * 15);
-  } else if (budget === "15元内" || budget === "15元以内" || budget === "15元以内") {
+  } else if (budget === "15元内" || budget === "15元以内") {
     return price <= 15 ? 100 : Math.max(0, 100 - (price - 15) * 10);
   } else if (budget === "20元内" || budget === "20元以内") {
     return price <= 20 ? 100 : Math.max(0, 100 - (price - 20) * 8);
@@ -338,12 +338,15 @@ export default function Recommend() {
     <div className="flex flex-col h-screen bg-[#F7F8FA]">
       <div className="bg-white/80 backdrop-blur-xl px-6 pt-10 pb-5 border-b border-gray-100 z-20">
         <div className="flex items-start justify-between gap-4">
-          <div className="flex flex-col gap-1">
-            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-zju-green/60">智能体验</span>
-            <h1 className="text-xl font-black text-[#1A1A1A] tracking-tight flex items-center gap-2">
-              智能寻味 <Sparkles className="w-4 h-4 text-zju-green" />
-            </h1>
-            <p className="text-xs text-gray-400 font-bold leading-relaxed max-w-[260px]">{memorySummary}</p>
+          <div className="flex items-center gap-3">
+            <img src="/images/logo.png" alt="Logo" className="w-10 h-10 rounded-xl object-cover shadow-sm" />
+            <div className="flex flex-col gap-1">
+              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-zju-green/60">智能体验</span>
+              <h1 className="text-xl font-black text-[#1A1A1A] tracking-tight flex items-center gap-2">
+                智能寻味 <Sparkles className="w-4 h-4 text-zju-green" />
+              </h1>
+              <p className="text-xs text-gray-400 font-bold leading-relaxed max-w-[260px]">{memorySummary}</p>
+            </div>
           </div>
           <button
             onClick={() => {

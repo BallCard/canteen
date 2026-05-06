@@ -4,7 +4,7 @@ AI 推荐路由
 from fastapi import APIRouter
 from ..models import AIRecommendRequest
 from ..services.recommendation import ai_recommend
-from ..services.tencent_ai import generate_reason
+from ..services.deepseek_ai import generate_reason
 
 router = APIRouter(prefix="/api/recommendations", tags=["推荐"])
 
