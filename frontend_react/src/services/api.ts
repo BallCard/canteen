@@ -13,12 +13,12 @@ const fallbackCanteens = [
 ];
 
 const fallbackDishes = [
-  { id: 1, name: "麻辣香锅", price: 18, canteen_id: 1, canteen_name: "一食堂", image: "/images/dishes/malaxiangguo-ai.png", calories: 650, protein: 25, fat: 35, carbs: 55, rating: 4.5, review_count: 28, is_sold_out: false, is_new: false, tags: ["辣", "荤", "人气"], reason: "麻辣鲜香，适合想吃重口的一餐" },
-  { id: 2, name: "番茄牛腩", price: 15, canteen_id: 1, canteen_name: "一食堂", image: "/images/dishes/fanqieniuniu-ai.png", calories: 480, protein: 30, fat: 18, carbs: 45, rating: 4.3, review_count: 22, is_sold_out: false, is_new: false, tags: ["清淡", "荤", "高蛋白"], reason: "酸甜开胃，高蛋白又不厚重" },
-  { id: 3, name: "清炒时蔬", price: 6, canteen_id: 2, canteen_name: "二食堂", image: "/images/dishes/qingchaoshishu-ai.png", calories: 120, protein: 5, fat: 3, carbs: 20, rating: 4.0, review_count: 15, is_sold_out: false, is_new: false, tags: ["清淡", "素", "低卡"], reason: "清爽低卡，适合搭配主食" },
-  { id: 4, name: "红烧肉", price: 12, canteen_id: 2, canteen_name: "二食堂", image: "/images/dishes/hongshaorou-ai.png", calories: 550, protein: 22, fat: 40, carbs: 15, rating: 4.1, review_count: 18, is_sold_out: false, is_new: false, tags: ["荤", "传统"], reason: "经典家常味，补充能量很直接" },
-  { id: 5, name: "牛肉面", price: 14, canteen_id: 3, canteen_name: "三食堂", image: "/images/dishes/niuroumian-ai.png", calories: 520, protein: 28, fat: 15, carbs: 65, rating: 4.6, review_count: 35, is_sold_out: false, is_new: false, tags: ["荤", "面食", "人气"], reason: "汤面稳妥，高蛋白也有饱腹感" },
-  { id: 6, name: "酸菜鱼", price: 16, canteen_id: 3, canteen_name: "三食堂", image: "/images/dishes/suancaiyu-ai.png", calories: 380, protein: 32, fat: 12, carbs: 25, rating: 4.4, review_count: 20, is_sold_out: false, is_new: true, tags: ["辣", "荤", "高蛋白", "新菜"], reason: "酸爽开胃，鱼肉高蛋白" },
+  { id: 1, name: "麻辣香锅", price: 18, canteen_id: 1, canteen_name: "一食堂", image: "/images/dishes/malaxiangguo.png", calories: 650, protein: 25, fat: 35, carbs: 55, rating: 4.5, review_count: 28, is_sold_out: false, is_new: false, tags: ["辣", "荤", "人气"], reason: "麻辣鲜香，适合想吃重口的一餐" },
+  { id: 2, name: "番茄牛腩", price: 15, canteen_id: 1, canteen_name: "一食堂", image: "/images/dishes/fanqieniuniu.png", calories: 480, protein: 30, fat: 18, carbs: 45, rating: 4.3, review_count: 22, is_sold_out: false, is_new: false, tags: ["清淡", "荤", "高蛋白"], reason: "酸甜开胃，高蛋白又不厚重" },
+  { id: 3, name: "清炒时蔬", price: 6, canteen_id: 2, canteen_name: "二食堂", image: "/images/dishes/qingchaoshishu.png", calories: 120, protein: 5, fat: 3, carbs: 20, rating: 4.0, review_count: 15, is_sold_out: false, is_new: false, tags: ["清淡", "素", "低卡"], reason: "清爽低卡，适合搭配主食" },
+  { id: 4, name: "红烧肉", price: 12, canteen_id: 2, canteen_name: "二食堂", image: "/images/dishes/hongshaorou.png", calories: 550, protein: 22, fat: 40, carbs: 15, rating: 4.1, review_count: 18, is_sold_out: false, is_new: false, tags: ["荤", "传统"], reason: "经典家常味，补充能量很直接" },
+  { id: 5, name: "牛肉面", price: 14, canteen_id: 3, canteen_name: "三食堂", image: "/images/dishes/niuroumian.png", calories: 520, protein: 28, fat: 15, carbs: 65, rating: 4.6, review_count: 35, is_sold_out: false, is_new: false, tags: ["荤", "面食", "人气"], reason: "汤面稳妥，高蛋白也有饱腹感" },
+  { id: 6, name: "酸菜鱼", price: 16, canteen_id: 3, canteen_name: "三食堂", image: "/images/dishes/suancaiyu.png", calories: 380, protein: 32, fat: 12, carbs: 25, rating: 4.4, review_count: 20, is_sold_out: false, is_new: true, tags: ["辣", "荤", "高蛋白", "新菜"], reason: "酸爽开胃，鱼肉高蛋白" },
 ];
 
 function fallbackResponse<T>(path: string): T | undefined {
