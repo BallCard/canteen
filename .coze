@@ -2,19 +2,19 @@
 sub_id = "ff65de9a"
 name = "canteen-assistant"
 entrypoint = "index.html"
-requires = ["nodejs-24", "python-3.12"]
+requires = ["nodejs-24"]
 project_type = "web"
 
 [preview]
 preview_enable = "enabled"
 
 [dev]
-build = ["bash", "/workspace/projects/scripts/coze-preview-build.sh"]
-run = ["bash", "/workspace/projects/scripts/coze-preview-run.sh"]
+build = ["bash", "scripts/coze-preview-build.sh"]
+run = ["bash", "scripts/coze-preview-run.sh"]
 
 [deploy]
-build = ["bash", "/workspace/projects/scripts/coze-deploy-build.sh"]
-run = ["bash", "/workspace/projects/scripts/coze-deploy-run.sh"]
+build = ["bash", "scripts/coze-deploy-build.sh"]
+run = ["bash", "scripts/coze-deploy-run.sh"]
 
 [deploy.profile]
 kind = "service"

@@ -1,17 +1,12 @@
 #!/usr/bin/env bash
-set -euo pipefail
+set -Eeuo pipefail
 
-# 基于脚本位置定位项目根目录（scripts/ 的上一级）
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
+PROJECT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 cd "$PROJECT_DIR"
 
-echo "Installing frontend dependencies..."
-cd frontend_react
-pnpm install
-
-echo "Installing Express for production server..."
-pnpm add express
+echo "Installing dependencies..."
+pnpm install --prefer-frozen-lockfile --prefer-offline
 
 echo "Building frontend with Vite..."
-pnpm exec vite build
+pnpm vite build
