@@ -1,6 +1,7 @@
 [project]
 sub_id = "ff65de9a"
 name = "canteen-assistant"
+entrypoint = "index.html"
 requires = ["nodejs-24", "python-3.12"]
 project_type = "web"
 
