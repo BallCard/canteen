@@ -3,12 +3,15 @@
 """
 import uvicorn
 import os
-from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-# Load environment variables
-load_dotenv()
+# Load .env if it exists (safe for both dev and production)
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass
 
 from .routers import canteens, dishes, reviews, meal_logs, users, recommendations, chat
 
