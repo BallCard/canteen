@@ -20,5 +20,8 @@ run = ["bash", "scripts/coze-deploy-run.sh"]
 kind = "service"
 flavor = "web"
 
+[deploy.backend]
+enabled = true
+
 [subprojects]
 path = ["."]
