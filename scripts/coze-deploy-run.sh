@@ -11,41 +11,27 @@ PORT="${DEPLOY_RUN_PORT:-5000}"
 fuser -k "$PORT"/tcp 2>/dev/null || true
 sleep 1
 
-# 使用 Node.js + Express 启动静态文件服务
+# 切换到 frontend_react 目录执行（这样 express 模块可以找到）
 cd frontend_react
-exec node -e "
+
+# 静态文件目录（绝对路径）
+DIST_DIR="$(pwd)/dist"
+
+# 使用 Node.js + Express 启动
+node -e "
 const express = require('express');
 const path = require('path');
-const http = require('http');
 
 const app = express();
 const PORT = process.env.DEPLOY_RUN_PORT || 5000;
+const DIST_DIR = require('path').resolve(__dirname, 'dist');
 
 // 静态文件
-app.use(express.static(path.join(__dirname, 'dist')));
-
-// API 代理到后端（如果可用）
-app.use('/api', (req, res) => {
-  const options = {
-    hostname: 'localhost',
-    port: 3001,
-    path: req.path,
-    method: req.method,
-    headers: req.headers
-  };
-  const proxyReq = http.request(options, (proxyRes) => {
-    res.writeHead(proxyRes.statusCode, proxyRes.headers);
-    proxyRes.pipe(res);
-  });
-  req.pipe(proxyReq);
-  proxyReq.on('error', () => {
-    res.status(503).json({ error: 'Backend unavailable' });
-  });
-});
+app.use(express.static(DIST_DIR));
 
 // SPA fallback
 app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+  res.sendFile(path.join(DIST_DIR, 'index.html'));
 });
 
 app.listen(PORT, '0.0.0.0', () => {
