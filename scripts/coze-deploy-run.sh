@@ -9,56 +9,46 @@ fuser -k "$BACKEND_PORT"/tcp 2>/dev/null || true
 fuser -k "$PORT"/tcp 2>/dev/null || true
 sleep 1
 
-# 动态查找 dist 目录
-DIST_DIR="$(find / -maxdepth 5 -path '*/frontend_react/dist/index.html' -type f 2>/dev/null | head -1)"
-
-if [ -z "$DIST_DIR" ]; then
-  DIST_DIR="$(find / -maxdepth 4 -name 'index.html' -path '*/dist/index.html' -type f 2>/dev/null | head -1)"
-fi
-
-if [ -n "$DIST_DIR" ]; then
-  DIST_DIR="$(dirname "$DIST_DIR")"
-  echo "Found dist at: $DIST_DIR"
+# 部署环境可能是扁平结构（dist 在根目录），也可能是子目录结构
+# 优先检查根目录的 dist，再检查 frontend_react/dist
+if [ -d "dist" ]; then
+  DIST_DIR="$(pwd)/dist"
+elif [ -d "frontend_react/dist" ]; then
+  DIST_DIR="$(pwd)/frontend_react/dist"
 else
-  echo "ERROR: Could not find dist directory"
-  echo "Listing search results:"
-  find / -maxdepth 4 -name "index.html" -type f 2>/dev/null | head -20
+  echo "ERROR: dist directory not found in $(pwd)"
+  echo "Directory contents:"
+  ls -la
   exit 1
 fi
 
-# 动态查找 express 模块
-EXPRESS_DIR=""
-for candidate in $(find / -maxdepth 5 -path '*/node_modules/express/package.json' -type f 2>/dev/null); do
-  EXPRESS_DIR="$(dirname "$(dirname "$(dirname "$candidate")")")"
-  break
-done
+echo "Found dist at: $DIST_DIR"
 
-if [ -z "$EXPRESS_DIR" ]; then
-  echo "ERROR: Could not find express module"
-  exit 1
-fi
-
-echo "Express at: $EXPRESS_DIR"
-
-# 动态查找 backend 目录
+# 查找 backend 目录
 BACKEND_DIR=""
-for candidate in $(find / -maxdepth 4 -name 'main.py' -path '*/backend/main.py' -type f 2>/dev/null); do
-  BACKEND_DIR="$(dirname "$(dirname "$candidate")")"
-  break
-done
+if [ -d "backend" ]; then
+  BACKEND_DIR="$(pwd)"
+elif [ -d "frontend_react" ] && [ -d "$(pwd)/../backend" ]; then
+  BACKEND_DIR="$(cd "$(pwd)/.." && pwd)"
+fi
 
-echo "=== Starting Backend ==="
-if [ -n "$BACKEND_DIR" ]; then
+# 启动后端
+if [ -n "$BACKEND_DIR" ] && [ -f "$BACKEND_DIR/backend/main.py" ]; then
+  echo "Starting Backend from: $BACKEND_DIR"
   cd "$BACKEND_DIR"
   python -m backend.main &
   BACKEND_PID=$!
   sleep 2
   echo "Backend started with PID $BACKEND_PID"
-else
-  echo "WARNING: Backend not found, running frontend-only mode"
 fi
 
-echo "=== Starting Frontend ==="
+# 查找 express 模块所在目录（需要在该目录下执行 node 才能 require）
+EXPRESS_DIR="$(pwd)"
+if [ ! -d "node_modules/express" ] && [ -d "frontend_react/node_modules/express" ]; then
+  EXPRESS_DIR="$(pwd)/frontend_react"
+fi
+
+echo "Starting Frontend from: $EXPRESS_DIR"
 cd "$EXPRESS_DIR"
 
 exec node -e "
