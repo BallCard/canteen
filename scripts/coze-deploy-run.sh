@@ -9,46 +9,38 @@ fuser -k "$BACKEND_PORT"/tcp 2>/dev/null || true
 fuser -k "$PORT"/tcp 2>/dev/null || true
 sleep 1
 
-# 部署环境可能是扁平结构（dist 在根目录），也可能是子目录结构
-# 优先检查根目录的 dist，再检查 frontend_react/dist
-if [ -d "dist" ]; then
-  DIST_DIR="$(pwd)/dist"
-elif [ -d "frontend_react/dist" ]; then
+# 部署环境可能是扁平结构，先进入 frontend_react（如果存在）
+if [ -d "frontend_react/dist" ]; then
   DIST_DIR="$(pwd)/frontend_react/dist"
+elif [ -d "dist" ]; then
+  DIST_DIR="$(pwd)/dist"
 else
   echo "ERROR: dist directory not found in $(pwd)"
-  echo "Directory contents:"
   ls -la
   exit 1
 fi
 
 echo "Found dist at: $DIST_DIR"
 
-# 查找 backend 目录
-BACKEND_DIR=""
-if [ -d "backend" ]; then
-  BACKEND_DIR="$(pwd)"
-elif [ -d "frontend_react" ] && [ -d "$(pwd)/../backend" ]; then
-  BACKEND_DIR="$(cd "$(pwd)/.." && pwd)"
-fi
-
-# 启动后端
-if [ -n "$BACKEND_DIR" ] && [ -f "$BACKEND_DIR/backend/main.py" ]; then
-  echo "Starting Backend from: $BACKEND_DIR"
-  cd "$BACKEND_DIR"
-  python -m backend.main &
-  BACKEND_PID=$!
-  sleep 2
-  echo "Backend started with PID $BACKEND_PID"
-fi
-
-# 查找 express 模块所在目录（需要在该目录下执行 node 才能 require）
-EXPRESS_DIR="$(pwd)"
-if [ ! -d "node_modules/express" ] && [ -d "frontend_react/node_modules/express" ]; then
+# 查找 express 模块
+if [ -d "node_modules/express" ]; then
+  EXPRESS_DIR="$(pwd)"
+elif [ -d "frontend_react/node_modules/express" ]; then
   EXPRESS_DIR="$(pwd)/frontend_react"
+else
+  echo "ERROR: express module not found"
+  exit 1
 fi
 
-echo "Starting Frontend from: $EXPRESS_DIR"
+# 启动后端（如果存在）
+if [ -d "backend" ]; then
+  echo "Starting Backend..."
+  python -m backend.main &
+  sleep 2
+  echo "Backend started"
+fi
+
+echo "Starting Frontend on port $PORT..."
 cd "$EXPRESS_DIR"
 
 exec node -e "
