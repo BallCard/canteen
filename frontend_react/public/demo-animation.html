@@ -2,11 +2,11 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>食堂助手 - 演示动画</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap');
 
         :root {
             --primary-green: #51CF66;
@@ -17,26 +17,27 @@
             background-color: #f7f9fb;
             overflow: hidden;
             user-select: none;
+            -webkit-tap-highlight-color: transparent;
         }
 
-        /* 动画基础 */
+        /* 动画关键帧 */
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        @keyframes slideUp { from { transform: translateY(30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-        @keyframes slideLeft { from { transform: translateX(100px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        @keyframes slideUp { from { transform: translateY(24px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        @keyframes slideLeft { from { transform: translateX(60px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
         @keyframes scaleIn { from { transform: scale(0.85); opacity: 0; } to { transform: scale(1); opacity: 1; } }
         @keyframes pulse { 0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(81, 207, 102, 0.4); } 70% { transform: scale(1.05); box-shadow: 0 0 0 15px rgba(81, 207, 102, 0); } 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(81, 207, 102, 0); } }
-        @keyframes shake { 
-            0%, 100% { transform: rotate(0deg) scale(1); } 
-            15% { transform: rotate(-20deg) scale(1.05); } 
-            30% { transform: rotate(20deg) scale(1.05); } 
-            45% { transform: rotate(-20deg) scale(1.05); } 
-            60% { transform: rotate(20deg) scale(1.05); } 
-            75% { transform: rotate(-10deg) scale(1.05); } 
-            85% { transform: rotate(10deg) scale(1.05); } 
+        @keyframes shake {
+            0%, 100% { transform: rotate(0deg) scale(1); }
+            15% { transform: rotate(-18deg) scale(1.05); }
+            30% { transform: rotate(18deg) scale(1.05); }
+            45% { transform: rotate(-18deg) scale(1.05); }
+            60% { transform: rotate(18deg) scale(1.05); }
+            75% { transform: rotate(-8deg) scale(1.05); }
+            85% { transform: rotate(8deg) scale(1.05); }
         }
         @keyframes glow {
             0%, 100% { filter: drop-shadow(0 0 5px rgba(255, 215, 0, 0.4)); opacity: 0.8; transform: scale(1); }
-            50% { filter: drop-shadow(0 0 25px rgba(255, 215, 0, 1)); opacity: 1; transform: scale(1.3); }
+            50% { filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.9)); opacity: 1; transform: scale(1.25); }
         }
 
         .fade-in { animation: fadeIn 0.8s ease-out forwards; }
@@ -56,6 +57,7 @@
         .scene {
             display: none;
             height: 100vh;
+            height: 100dvh;
             width: 100vw;
             position: absolute;
             top: 0;
@@ -74,8 +76,8 @@
         .border-primary { border-color: var(--primary-green); }
 
         .dot {
-            width: 10px;
-            height: 10px;
+            width: 8px;
+            height: 8px;
             border-radius: 50%;
             background-color: #cbd5e0;
             transition: all 0.3s ease;
@@ -86,14 +88,17 @@
             transform: scale(1.3);
         }
 
-        /* 隐藏滚动条 */
         ::-webkit-scrollbar { display: none; }
+
+        @media (max-height: 640px) {
+            .scene.active { justify-content: flex-start; padding-top: 5rem; }
+        }
     </style>
 </head>
 <body>
 
     <!-- 顶部进度指示器 -->
-    <div class="fixed top-8 left-0 right-0 z-50 flex justify-center gap-3">
+    <div class="fixed top-6 md:top-8 left-0 right-0 z-50 flex justify-center gap-2 md:gap-3">
         <div class="dot" id="dot-1"></div>
         <div class="dot" id="dot-2"></div>
         <div class="dot" id="dot-3"></div>
@@ -102,7 +107,7 @@
     </div>
 
     <!-- 右上角场景计数 -->
-    <div class="fixed top-8 right-8 z-50 font-bold text-gray-400 text-lg" id="scene-counter">
+    <div class="fixed top-5 md:top-8 right-5 md:right-8 z-50 font-bold text-gray-400 text-sm md:text-lg" id="scene-counter">
         1/5
     </div>
 
@@ -110,201 +115,186 @@
     <div id="scenes-container">
         <!-- Scene 1: 开场 -->
         <div id="scene-1" class="scene active bg-white px-6">
-            <div class="flex flex-col items-center text-center max-w-4xl">
-                <div class="w-24 h-24 rounded-2xl flex items-center justify-center mb-8 scale-in overflow-hidden">
+            <div class="flex flex-col items-center text-center max-w-sm md:max-w-4xl">
+                <div class="w-20 h-20 md:w-24 md:h-24 rounded-2xl flex items-center justify-center mb-6 md:mb-8 scale-in overflow-hidden">
                     <img src="images/logo.png" alt="Logo" class="w-full h-full object-cover">
                 </div>
-                <h1 class="text-5xl md:text-7xl font-bold mb-12 slide-up">智能点餐助手</h1>
-                <div class="space-y-4 mb-12">
-                    <p class="text-2xl md:text-3xl text-gray-600 slide-up delay-1">"今天吃什么？"</p>
-                    <p class="text-2xl md:text-3xl text-gray-600 slide-up delay-2">"选择太多？"</p>
-                    <p class="text-2xl md:text-3xl text-gray-600 slide-up delay-3">"营养怎么平衡？"</p>
+                <h1 class="text-3xl sm:text-4xl md:text-6xl lg:text-7xl font-black mb-6 md:mb-12 slide-up tracking-tight">智能点餐助手</h1>
+                <div class="space-y-3 md:space-y-4 mb-6 md:mb-12">
+                    <p class="text-lg sm:text-xl md:text-3xl text-gray-600 slide-up delay-1 font-medium">"今天吃什么？"</p>
+                    <p class="text-lg sm:text-xl md:text-3xl text-gray-600 slide-up delay-2 font-medium">"选择太多？"</p>
+                    <p class="text-lg sm:text-xl md:text-3xl text-gray-600 slide-up delay-3 font-medium">"营养怎么平衡？"</p>
                 </div>
-                <div class="px-6 py-2 bg-green-50 rounded-full border border-primary text-primary text-xl font-semibold mb-4 slide-up delay-4">
+                <div class="px-4 md:px-6 py-1.5 md:py-2 bg-green-50 rounded-full border border-primary text-primary text-sm md:text-xl font-semibold mb-3 md:mb-4 slide-up delay-4">
                     AI 驱动的校园食堂助手
                 </div>
-                <p class="text-gray-400 slide-up delay-5">让每一餐都有答案</p>
-            </div>
-            <div class="fixed bottom-10 bg-black/5 backdrop-blur-sm px-6 py-3 rounded-xl slide-up delay-5">
-                <p class="text-sm text-gray-600">📱 实机演示：打开应用，浏览食堂列表</p>
+                <p class="text-gray-400 text-xs md:text-base slide-up delay-5">让每一餐都有答案</p>
             </div>
         </div>
 
         <!-- Scene 2: AI 对话助手 -->
         <div id="scene-2" class="scene bg-white px-6">
-            <div class="flex flex-col items-center w-full max-w-2xl slide-left">
-                <div class="text-center mb-10 scale-in">
-                    <h2 class="text-4xl font-bold flex items-center justify-center gap-3 mb-2">
-                        <span>💬</span> AI 对话助手
+            <div class="flex flex-col items-center w-full max-w-sm md:max-w-2xl">
+                <div class="text-center mb-6 md:mb-10 scale-in">
+                    <h2 class="text-2xl md:text-4xl font-black flex items-center justify-center gap-2 md:gap-3 mb-1 md:mb-2 tracking-tight">
+                        <span class="text-xl md:text-4xl">💬</span> <span>AI 对话助手</span>
                     </h2>
-                    <p class="text-gray-500 text-lg">像朋友聊天一样，说出你的需求</p>
+                    <p class="text-gray-500 text-xs md:text-lg">像朋友聊天一样，说出你的需求</p>
                 </div>
 
-                <div class="w-full space-y-6 mb-12">
+                <div class="w-full space-y-3 md:space-y-6 mb-6 md:mb-12">
                     <div class="flex justify-end slide-left delay-1">
-                        <div class="bg-primary text-white p-4 rounded-2xl rounded-tr-none shadow-sm max-w-[80%]">
+                        <div class="bg-primary text-white p-3 md:p-4 rounded-2xl rounded-tr-none shadow-sm max-w-[80%] text-sm md:text-base">
                             今天想吃点清淡的
                         </div>
                     </div>
                     <div class="flex justify-start slide-up delay-2">
-                        <div class="bg-white text-gray-800 p-4 rounded-2xl rounded-tl-none shadow-sm max-w-[80%] border border-gray-100">
+                        <div class="bg-white text-gray-800 p-3 md:p-4 rounded-2xl rounded-tl-none shadow-sm max-w-[80%] border border-gray-100 text-sm md:text-base">
                             好的！推荐清炒时蔬、白灼西兰花。你今天运动量如何？我可以帮你调整蛋白质配比~
                         </div>
                     </div>
                     <div class="flex justify-end slide-left delay-3">
-                        <div class="bg-primary text-white p-4 rounded-2xl rounded-tr-none shadow-sm max-w-[80%]">
+                        <div class="bg-primary text-white p-3 md:p-4 rounded-2xl rounded-tr-none shadow-sm max-w-[80%] text-sm md:text-base">
                             今天没运动，想减脂
                         </div>
                     </div>
                     <div class="flex justify-start slide-up delay-4">
-                        <div class="bg-white text-gray-800 p-4 rounded-2xl rounded-tl-none shadow-sm max-w-[80%] border-l-4 border-primary border border-gray-100">
+                        <div class="bg-white text-gray-800 p-3 md:p-4 rounded-2xl rounded-tl-none shadow-sm max-w-[80%] border-l-4 border-primary border border-gray-100 text-sm md:text-base">
                             了解！减脂模式推荐：<span class="font-bold">清蒸鲈鱼 + 烫青菜</span>，预估热量 320 kcal
                         </div>
                     </div>
                 </div>
 
-                <div class="flex flex-wrap justify-center gap-4 slide-up delay-5">
-                    <span class="px-4 py-1.5 bg-blue-50 text-blue-600 rounded-full text-sm font-medium">✓ 主动追问引导</span>
-                    <span class="px-4 py-1.5 bg-purple-50 text-purple-600 rounded-full text-sm font-medium">✓ 偏好联动</span>
-                    <span class="px-4 py-1.5 bg-green-50 text-green-600 rounded-full text-sm font-medium">✓ 营养追踪联动</span>
+                <div class="flex flex-wrap justify-center gap-2 md:gap-4 slide-up delay-5">
+                    <span class="px-3 md:px-4 py-1 md:py-1.5 bg-blue-50 text-blue-600 rounded-full text-[10px] md:text-sm font-semibold">✓ 主动追问引导</span>
+                    <span class="px-3 md:px-4 py-1 md:py-1.5 bg-purple-50 text-purple-600 rounded-full text-[10px] md:text-sm font-semibold">✓ 偏好联动</span>
+                    <span class="px-3 md:px-4 py-1 md:py-1.5 bg-green-50 text-green-600 rounded-full text-[10px] md:text-sm font-semibold">✓ 营养追踪联动</span>
                 </div>
-            </div>
-            <div class="fixed bottom-10 bg-black/5 backdrop-blur-sm px-6 py-3 rounded-xl">
-                <p class="text-sm text-gray-600 text-center">📱 实机演示：进入"推荐"页，输入"推荐个菜"，体验 AI 追问流程</p>
             </div>
         </div>
 
         <!-- Scene 3: 菜单共建机制 -->
         <div id="scene-3" class="scene bg-neutral-50 px-6">
-            <div class="flex flex-col items-center w-full max-w-5xl slide-left">
-                <div class="text-center mb-12 scale-in">
-                    <h2 class="text-4xl font-bold flex items-center justify-center gap-3 mb-2">
-                        <span>🤝</span> 菜单共建
+            <div class="flex flex-col items-center w-full max-w-sm md:max-w-5xl">
+                <div class="text-center mb-6 md:mb-12 scale-in">
+                    <h2 class="text-2xl md:text-4xl font-black flex items-center justify-center gap-2 md:gap-3 mb-1 md:mb-2 tracking-tight">
+                        <span class="text-xl md:text-4xl">🤝</span> <span>菜单共建</span>
                     </h2>
-                    <p class="text-gray-500 text-lg">用户参与，让菜单更丰富</p>
+                    <p class="text-gray-500 text-xs md:text-lg">用户参与，让菜单更丰富</p>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 w-full mb-12">
-                    <div class="bg-white p-8 rounded-3xl shadow-sm border border-gray-100 flex flex-col items-center text-center slide-up delay-1">
-                        <div class="w-16 h-16 bg-blue-50 text-blue-500 rounded-full flex items-center justify-center text-3xl mb-4">📝</div>
-                        <h3 class="text-xl font-bold mb-2">添加菜品</h3>
-                        <p class="text-gray-500">发现新菜？分享给大家</p>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-6 w-full mb-6 md:mb-12">
+                    <div class="bg-white p-5 md:p-8 rounded-2xl md:rounded-3xl shadow-sm border border-gray-100 flex flex-col items-center text-center slide-up delay-1">
+                        <div class="w-12 h-12 md:w-16 md:h-16 bg-blue-50 text-blue-500 rounded-full flex items-center justify-center text-2xl md:text-3xl mb-3 md:mb-4">📝</div>
+                        <h3 class="text-base md:text-xl font-bold mb-1 md:mb-2">添加菜品</h3>
+                        <p class="text-gray-500 text-xs md:text-base">发现新菜？分享给大家</p>
                     </div>
-                    <div class="bg-white p-8 rounded-3xl shadow-sm border border-gray-100 flex flex-col items-center text-center slide-up delay-2">
-                        <div class="w-16 h-16 bg-yellow-50 text-yellow-500 rounded-full flex items-center justify-center text-3xl mb-4">⭐</div>
-                        <h3 class="text-xl font-bold mb-2">评价菜品</h3>
-                        <p class="text-gray-500">你的评价帮助优化推荐</p>
+                    <div class="bg-white p-5 md:p-8 rounded-2xl md:rounded-3xl shadow-sm border border-gray-100 flex flex-col items-center text-center slide-up delay-2">
+                        <div class="w-12 h-12 md:w-16 md:h-16 bg-yellow-50 text-yellow-500 rounded-full flex items-center justify-center text-2xl md:text-3xl mb-3 md:mb-4">⭐</div>
+                        <h3 class="text-base md:text-xl font-bold mb-1 md:mb-2">评价菜品</h3>
+                        <p class="text-gray-500 text-xs md:text-base">你的评价帮助优化推荐</p>
                     </div>
-                    <div class="bg-white p-8 rounded-3xl shadow-sm border border-gray-100 flex flex-col items-center text-center slide-up delay-3">
-                        <div class="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center text-3xl mb-4">📷</div>
-                        <h3 class="text-xl font-bold mb-2">上传图片</h3>
-                        <p class="text-gray-500">让菜品更直观</p>
+                    <div class="bg-white p-5 md:p-8 rounded-2xl md:rounded-3xl shadow-sm border border-gray-100 flex flex-col items-center text-center slide-up delay-3">
+                        <div class="w-12 h-12 md:w-16 md:h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center text-2xl md:text-3xl mb-3 md:mb-4">📷</div>
+                        <h3 class="text-base md:text-xl font-bold mb-1 md:mb-2">上传图片</h3>
+                        <p class="text-gray-500 text-xs md:text-base">让菜品更直观</p>
                     </div>
                 </div>
 
-                <p class="text-gray-400 text-center slide-up delay-4 italic">"共建数据反哺推荐，让每个人都能发现好菜"</p>
-            </div>
-            <div class="fixed bottom-10 bg-black/5 backdrop-blur-sm px-6 py-3 rounded-xl">
-                <p class="text-sm text-gray-600">📱 实机演示：进入菜品详情页，点击"评价"按钮参与共建</p>
+                <p class="text-gray-400 text-center slide-up delay-4 italic text-xs md:text-base">"共建数据反哺推荐，让每个人都能发现好菜"</p>
             </div>
         </div>
 
         <!-- Scene 4: 多元化呈现 + 摇一摇选菜 -->
         <div id="scene-4" class="scene bg-white px-6">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-16 items-center w-full max-w-6xl">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-16 items-center w-full max-w-sm md:max-w-6xl">
                 <!-- 左侧: 多元化呈现 -->
-                <div class="flex flex-col gap-6 slide-left delay-1">
-                    <h3 class="text-2xl font-bold border-l-4 border-primary pl-4">多元化呈现</h3>
-                    <div class="space-y-4">
-                        <div class="flex items-center gap-4 bg-gradient-to-r from-amber-50 to-white p-4 rounded-2xl border border-amber-100 shadow-sm scale-in delay-2">
-                            <span class="text-4xl">🍜</span>
+                <div class="flex flex-col gap-4 md:gap-6 slide-left delay-1">
+                    <h3 class="text-lg md:text-2xl font-black border-l-4 border-primary pl-3 md:pl-4 tracking-tight">多元化呈现</h3>
+                    <div class="space-y-3 md:space-y-4">
+                        <div class="flex items-center gap-3 md:gap-4 bg-gradient-to-r from-amber-50 to-white p-3 md:p-4 rounded-xl md:rounded-2xl border border-amber-100 shadow-sm scale-in delay-2">
+                            <span class="text-2xl md:text-4xl">🍜</span>
                             <div>
-                                <h4 class="font-bold">牛肉面</h4>
-                                <span class="text-xs bg-amber-100 text-amber-600 px-2 py-0.5 rounded">面食 · 人气</span>
+                                <h4 class="font-bold text-sm md:text-base">牛肉面</h4>
+                                <span class="text-[10px] md:text-xs bg-amber-100 text-amber-600 px-1.5 md:px-2 py-0.5 rounded font-semibold">面食 · 人气</span>
                             </div>
                         </div>
-                        <div class="flex items-center gap-4 bg-gradient-to-r from-green-50 to-white p-4 rounded-2xl border border-green-100 shadow-sm scale-in delay-3">
-                            <span class="text-4xl">🥬</span>
+                        <div class="flex items-center gap-3 md:gap-4 bg-gradient-to-r from-green-50 to-white p-3 md:p-4 rounded-xl md:rounded-2xl border border-green-100 shadow-sm scale-in delay-3">
+                            <span class="text-2xl md:text-4xl">🥬</span>
                             <div>
-                                <h4 class="font-bold">清炒时蔬</h4>
-                                <span class="text-xs bg-green-100 text-green-600 px-2 py-0.5 rounded">清淡 · 低卡</span>
+                                <h4 class="font-bold text-sm md:text-base">清炒时蔬</h4>
+                                <span class="text-[10px] md:text-xs bg-green-100 text-green-600 px-1.5 md:px-2 py-0.5 rounded font-semibold">清淡 · 低卡</span>
                             </div>
                         </div>
-                        <div class="flex items-center gap-4 bg-gradient-to-r from-red-50 to-white p-4 rounded-2xl border border-red-100 shadow-sm scale-in delay-4">
-                            <span class="text-4xl">🐟</span>
+                        <div class="flex items-center gap-3 md:gap-4 bg-gradient-to-r from-red-50 to-white p-3 md:p-4 rounded-xl md:rounded-2xl border border-red-100 shadow-sm scale-in delay-4">
+                            <span class="text-2xl md:text-4xl">🐟</span>
                             <div>
-                                <h4 class="font-bold">酸菜鱼</h4>
-                                <span class="text-xs bg-red-100 text-red-600 px-2 py-0.5 rounded">辣 · 高蛋白</span>
+                                <h4 class="font-bold text-sm md:text-base">酸菜鱼</h4>
+                                <span class="text-[10px] md:text-xs bg-red-100 text-red-600 px-1.5 md:px-2 py-0.5 rounded font-semibold">辣 · 高蛋白</span>
                             </div>
                         </div>
                     </div>
-                    <p class="text-gray-500 text-sm">不同口味、不同营养目标，视觉差异化呈现</p>
+                    <p class="text-gray-500 text-[10px] md:text-sm">不同口味、不同营养目标，视觉差异化呈现</p>
                 </div>
 
                 <!-- 右侧: 摇一摇选菜 -->
-                <div class="flex flex-col items-center text-center gap-6 slide-up delay-2">
-                    <h3 class="text-2xl font-bold border-l-4 border-primary pl-4 w-full text-left md:text-center">摇一摇选菜</h3>
-                    <div class="bg-gray-50 w-48 h-80 rounded-[3rem] border-8 border-gray-800 flex items-center justify-center shadow-2xl shake-infinite relative">
-                         <div class="text-6xl">📱</div>
-                         <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 mt-12">
-                            <div class="text-5xl glow-infinite">🎁</div>
+                <div class="flex flex-col items-center text-center gap-3 md:gap-6 slide-up delay-2">
+                    <h3 class="text-lg md:text-2xl font-black border-l-4 border-primary pl-3 md:pl-4 w-full text-left md:text-center tracking-tight">摇一摇选菜</h3>
+                    <div class="bg-gray-50 w-36 h-56 md:w-48 md:h-80 rounded-[2rem] md:rounded-[3rem] border-4 md:border-8 border-gray-800 flex items-center justify-center shadow-2xl shake-infinite relative">
+                         <div class="text-4xl md:text-6xl">📱</div>
+                         <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 mt-8 md:mt-12">
+                            <div class="text-3xl md:text-5xl glow-infinite">🎁</div>
                          </div>
                     </div>
-                    <div class="space-y-2">
-                        <p class="text-xl font-bold text-primary">摇一摇，随机选一道</p>
-                        <p class="text-gray-500">结合你的偏好，个性化随机推荐</p>
+                    <div class="space-y-1 md:space-y-2">
+                        <p class="text-base md:text-xl font-black text-primary tracking-tight">摇一摇，随机选一道</p>
+                        <p class="text-gray-500 text-[10px] md:text-sm">结合你的偏好，个性化随机推荐</p>
                     </div>
                 </div>
-            </div>
-            <div class="fixed bottom-10 bg-black/5 backdrop-blur-sm px-6 py-3 rounded-xl">
-                <p class="text-sm text-gray-600">📱 实机演示：首页下拉刷新，或在推荐页摇动手机</p>
             </div>
         </div>
 
         <!-- Scene 5: 结尾 -->
         <div id="scene-5" class="scene bg-neutral-900 text-white px-6">
-            <div class="flex flex-col items-center text-center w-full max-w-4xl">
-                <div class="flex flex-wrap justify-center gap-8 md:gap-16 mb-16 slide-up delay-1">
-                    <div class="flex flex-col items-center gap-2">
-                        <span class="text-4xl">💬</span>
-                        <span class="text-gray-400">AI 对话</span>
+            <div class="flex flex-col items-center text-center w-full max-w-sm md:max-w-4xl">
+                <div class="flex justify-center gap-6 md:gap-16 mb-8 md:mb-16 slide-up delay-1">
+                    <div class="flex flex-col items-center gap-1 md:gap-2">
+                        <span class="text-2xl md:text-4xl">💬</span>
+                        <span class="text-gray-400 text-[10px] md:text-base">AI 对话</span>
                     </div>
-                    <div class="flex flex-col items-center gap-2">
-                        <span class="text-4xl">🤝</span>
-                        <span class="text-gray-400">菜单共建</span>
+                    <div class="flex flex-col items-center gap-1 md:gap-2">
+                        <span class="text-2xl md:text-4xl">🤝</span>
+                        <span class="text-gray-400 text-[10px] md:text-base">菜单共建</span>
                     </div>
-                    <div class="flex flex-col items-center gap-2">
-                        <span class="text-4xl">🎨</span>
-                        <span class="text-gray-400">多元呈现</span>
+                    <div class="flex flex-col items-center gap-1 md:gap-2">
+                        <span class="text-2xl md:text-4xl">🎨</span>
+                        <span class="text-gray-400 text-[10px] md:text-base">多元呈现</span>
                     </div>
-                    <div class="flex flex-col items-center gap-2">
-                        <span class="text-4xl">📱</span>
-                        <span class="text-gray-400">摇一摇</span>
+                    <div class="flex flex-col items-center gap-1 md:gap-2">
+                        <span class="text-2xl md:text-4xl">📱</span>
+                        <span class="text-gray-400 text-[10px] md:text-base">摇一摇</span>
                     </div>
                 </div>
 
-                <div class="w-32 h-32 rounded-[2rem] flex items-center justify-center mb-10 pulse overflow-hidden">
+                <div class="w-20 h-20 md:w-32 md:h-32 rounded-[1.5rem] md:rounded-[2rem] flex items-center justify-center mb-6 md:mb-10 pulse overflow-hidden">
                     <img src="images/logo.png" alt="Logo" class="w-full h-full object-cover">
                 </div>
 
-                <h1 class="text-5xl md:text-7xl font-bold mb-6 slide-up delay-1">智能点餐助手</h1>
-                <p class="text-3xl text-primary font-medium mb-16 slide-up delay-2">让每一餐都有答案</p>
+                <h1 class="text-2xl sm:text-3xl md:text-5xl lg:text-7xl font-black mb-3 md:mb-6 slide-up delay-1 tracking-tight">智能点餐助手</h1>
+                <p class="text-xl md:text-3xl text-primary font-bold mb-8 md:mb-16 slide-up delay-2">让每一餐都有答案</p>
 
-                <div class="flex flex-wrap justify-center gap-4 slide-up delay-3">
-                    <span class="px-3 py-1 bg-white/10 rounded text-xs text-gray-300">React</span>
-                    <span class="px-3 py-1 bg-white/10 rounded text-xs text-gray-300">FastAPI</span>
-                    <span class="px-3 py-1 bg-white/10 rounded text-xs text-gray-300">AI 大模型</span>
-                    <span class="px-3 py-1 bg-white/10 rounded text-xs text-gray-300">SQLite</span>
+                <div class="flex flex-wrap justify-center gap-2 md:gap-4 slide-up delay-3">
+                    <span class="px-2 md:px-3 py-0.5 md:py-1 bg-white/10 rounded text-[10px] md:text-xs text-gray-300 font-medium">React</span>
+                    <span class="px-2 md:px-3 py-0.5 md:py-1 bg-white/10 rounded text-[10px] md:text-xs text-gray-300 font-medium">FastAPI</span>
+                    <span class="px-2 md:px-3 py-0.5 md:py-1 bg-white/10 rounded text-[10px] md:text-xs text-gray-300 font-medium">AI 大模型</span>
+                    <span class="px-2 md:px-3 py-0.5 md:py-1 bg-white/10 rounded text-[10px] md:text-xs text-gray-300 font-medium">SQLite</span>
                 </div>
-            </div>
-            <div class="fixed bottom-10 bg-white/5 backdrop-blur-sm px-6 py-3 rounded-xl border border-white/10">
-                <p class="text-sm text-gray-400">📱 实机演示：完整体验请下载应用</p>
             </div>
         </div>
     </div>
 
     <!-- 底部提示 -->
-    <div class="fixed bottom-4 left-0 right-0 text-center text-gray-400 text-xs font-medium z-50">
+    <div class="fixed bottom-3 md:bottom-4 left-0 right-0 text-center text-gray-400 text-[10px] md:text-xs font-medium z-50">
         点击或按空格键切换场景
     </div>
 
@@ -313,9 +303,7 @@
         const totalScenes = 5;
         const container = document.getElementById('scenes-container');
 
-        // 切换场景
         function showScene(num) {
-            // 隐藏所有场景
             for (let i = 1; i <= totalScenes; i++) {
                 const scene = document.getElementById(`scene-${i}`);
                 const dot = document.getElementById(`dot-${i}`);
@@ -323,16 +311,14 @@
                 dot.classList.remove('active');
             }
 
-            // 显示目标场景
             const targetScene = document.getElementById(`scene-${num}`);
             const targetDot = document.getElementById(`dot-${num}`);
             targetScene.classList.add('active');
             targetDot.classList.add('active');
 
-            // 更新计数
             document.getElementById('scene-counter').innerText = `${num}/${totalScenes}`;
 
-            // 重新触发动画：通过 innerHTML 重置内容
+            // 重新触发动画
             const originalHTML = targetScene.innerHTML;
             targetScene.innerHTML = '';
             setTimeout(() => {
@@ -340,23 +326,17 @@
             }, 10);
         }
 
-        // 下一场景
         function nextScene() {
             currentScene = currentScene >= totalScenes ? 1 : currentScene + 1;
             showScene(currentScene);
         }
 
-        // 上一场景
         function prevScene() {
             currentScene = currentScene <= 1 ? totalScenes : currentScene - 1;
             showScene(currentScene);
         }
 
-        // 事件监听
-        document.addEventListener('click', (e) => {
-            // 排除某些可能需要单独点击的元素（此处为全屏演示，一般直接切）
-            nextScene();
-        });
+        document.addEventListener('click', (e) => { nextScene(); });
 
         document.addEventListener('keydown', (e) => {
             if (e.code === 'Space' || e.code === 'ArrowRight' || e.code === 'Enter') {
@@ -369,7 +349,7 @@
             }
         });
 
-        // 触屏滑动支持
+        // 触屏滑动 + 点击
         let touchStartX = 0;
         let touchStartY = 0;
 
@@ -382,23 +362,15 @@
             const diffX = touchStartX - e.changedTouches[0].clientX;
             const diffY = touchStartY - e.changedTouches[0].clientY;
 
-            // 如果是明显的横向滑动
             if (Math.abs(diffX) > 50 && Math.abs(diffX) > Math.abs(diffY)) {
-                if (diffX > 0) {
-                    nextScene();
-                } else {
-                    prevScene();
-                }
+                if (diffX > 0) nextScene();
+                else prevScene();
             } else if (Math.abs(diffX) < 10 && Math.abs(diffY) < 10) {
-                // 如果是点击
                 nextScene();
             }
         }, { passive: true });
 
-        // 初始化
-        window.addEventListener('load', () => {
-             showScene(1);
-        });
+        window.addEventListener('load', () => { showScene(1); });
     </script>
 </body>
 </html>

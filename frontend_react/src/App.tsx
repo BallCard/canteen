@@ -13,6 +13,7 @@ import Nutrition from "./pages/Nutrition";
 import Profile from "./pages/Profile";
 import CanteenMap from "./pages/CanteenMap";
 import Favorites from "./pages/Favorites";
+import { ErrorBoundary } from "./components/ErrorBoundary";
 
 function BottomNav() {
   const location = useLocation();
@@ -67,6 +68,7 @@ function BottomNav() {
 
 export default function App() {
   return (
+    <ErrorBoundary>
     <Router>
       <div className="min-h-screen bg-[#F7F8FA] text-[#333333] font-sans pb-20">
         <AnimatePresence mode="wait">
@@ -84,6 +86,7 @@ export default function App() {
         <BottomNav />
       </div>
     </Router>
+    </ErrorBoundary>
   );
 }
 

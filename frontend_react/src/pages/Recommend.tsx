@@ -253,6 +253,9 @@ export default function Recommend() {
     setInputValue("");
     setChatLoading(true);
 
+    const controller = new AbortController();
+    const timeoutTimer = setTimeout(() => controller.abort(), 15000);
+
     try {
       const allDishes = await dishService.getAll();
       const menuPreview = allDishes.slice(0, 24).map((dish: any) =>
@@ -272,10 +275,10 @@ export default function Recommend() {
         role: message.role === "user" ? "user" : "assistant",
         content: message.content,
       }));
-
       const response = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        signal: controller.signal,
         body: JSON.stringify({
           messages: [
             { role: "system", content: systemPrompt },
@@ -289,6 +292,7 @@ export default function Recommend() {
       if (!response.ok) throw new Error("API request failed");
 
       const data = await response.json();
+      clearTimeout(timeoutTimer);
       const aiText = data.reply || "我暂时没想好，再给我一个口味或预算条件。";
 
       // Update chat context from backend response
@@ -320,6 +324,7 @@ export default function Recommend() {
         dishes: localDishes,
       }]);
     } finally {
+      clearTimeout(timeoutTimer);
       setChatLoading(false);
     }
   };
@@ -458,7 +463,7 @@ export default function Recommend() {
               className="flex-1 bg-transparent py-3 text-sm focus:outline-none font-bold placeholder:text-gray-300 text-[#1A1A1A]"
             />
             <button
-              onClick={handleChat}
+              onClick={() => handleChat()}
               disabled={!inputValue.trim() || chatLoading}
               className={cn(
                 "w-10 h-10 rounded-2xl flex items-center justify-center transition-all shadow-lg",

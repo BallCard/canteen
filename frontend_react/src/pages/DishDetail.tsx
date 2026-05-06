@@ -21,6 +21,7 @@ interface Dish {
   protein?: number;
   fat?: number;
   carbs?: number;
+  is_sold_out?: boolean;
   nutrients?: {
     protein: number;
     fat: number;
