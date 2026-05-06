@@ -10,5 +10,8 @@ echo "Installing frontend dependencies..."
 cd frontend_react
 pnpm install
 
+echo "Installing Express for production server..."
+pnpm add express
+
 echo "Building frontend with Vite..."
 pnpm exec vite build
